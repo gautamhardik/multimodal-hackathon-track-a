@@ -48,3 +48,6 @@ patch_nb5.py
 patch_nb6.py
 update_outputs.py
 build_nb6.py
+
+# Vendored front-end libraries must be committed (three.js lives under a build/ folder)
+!frontend/vendor/**/build/

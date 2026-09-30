@@ -52,6 +52,13 @@ Run the tests from the repository root:
 python -m pytest backend/tests -q
 ```
 
+Or run everything in Docker (the same image CI builds and smoke-tests):
+
+```bash
+docker build -t coronary-risk-explorer .
+docker run -p 8000:8000 coronary-risk-explorer
+```
+
 ## Validation design
 
 - **Split:** 242 development / 61 holdout patients, stratified on `Cath`. The holdout was sealed until Notebook 6 and evaluated **once**. No model, feature, hyperparameter or threshold decision used it.
@@ -163,13 +170,15 @@ Notebook 8 reproduces the v1.1 fold AUCs of Notebook 7 exactly before computing 
   - **Muscle surface:** soft sheen and a warm edge light.
 - **Focus mode:** selecting an artery turns the camera to it and moves in, dims the other arteries, and expands its label with the territory it supplies. Double-clicking empty space clears the selection.
 - **Full-screen 3D:** press **F**, or use the toolbar button, to hide the side panels.
-- **Keyboard:** **1–4** select a target, **V** cycles views, **/** finds a measurement, **Esc** clears, **?** lists the shortcuts.
+- **Keyboard:** **1–4** select a target, **V** cycles views, **/** finds a measurement, **S** toggles the heartbeat sound, **Esc** clears, **?** lists the shortcuts.
 - Colours ease to their new values whenever a prediction changes.
 - The ramp's OKLab lightness decreases monotonically, so order survives colour-vision deficiency. Every vessel carries a dark outline so pale (low-probability) vessels stay visible.
 
 **Dashboard:**
 - **Patient inputs:** grouped inputs with units. BMI and obesity are derived, and chest-pain classes use a single control. Example patients come from the development cohort, with outcomes never shown. Predictions update live, with validation messages next to each field.
 - **Navigation:** the inputs panel has a search box and section chips, which show counts of findings present or out of range. One section is open at a time. The results panel pins a summary strip (CAD · LAD · LCX · RCA, with flagged estimates ringed) above its tabs: Results / Threshold / Explain / Evidence.
+- **Heartbeat sound:** the speaker button (or **S**) plays a synthesised "lub-dub" in time with the 3D heart at the patient's pulse rate, on both pages. It is off by default and remembered per browser; in the explorer, turning it on also starts the heartbeat animation.
+- **What-if feedback:** after a manual edit, each summary chip shows how many points its estimate moved (for example ▼ 14). Loading an example or resetting clears these.
 - **Results:** the overall CAD estimate, the vessel estimates with operating-threshold markers, the model discrimination per vessel, a Cath/vessel consistency warning, and out-of-range input warnings.
 - **Threshold:** presets, a slider and a sensitivity/specificity chart marking the current patient. It shows development sensitivity, specificity, PPV and NPV at the chosen threshold, and the flags update live. Only the flag changes: probabilities, 3D colours and explanations do not depend on the threshold. Choices are remembered per browser.
 - **Explain:** hovering a measurement highlights its input field (or its section chip when that section is closed). The tab shows a diverging SHAP chart (raises vs lowers), contribution by clinical domain, and a sortable physiological breakdown. The breakdown shows each measurement's value, typical adult range and share of the attribution.
@@ -194,8 +203,8 @@ python tools/build_anatomy.py
 - The credit appears in the page footer and inside the `.glb` metadata.
 
 **Requirements:**
-- The pages load Three.js 0.170, GSAP 3.15 (with ScrollTrigger) and the Geist and Instrument Serif fonts from CDNs, so the browser needs internet access.
-- The anatomy is served locally from `frontend/assets/anatomy/`.
+- **Libraries: CDN when online, local copies when not.** `frontend/js/deps.js` loads Three.js 0.170, GSAP 3.15 and the Geist and Instrument Serif fonts from jsDelivr and Google Fonts when they are reachable, and otherwise from the vendored copies in `frontend/vendor/` (about 1.4 MB; sources and licences in `frontend/vendor/README.md`). It uses the local copies when the browser is offline, when the CDN does not answer within 1.2 s, or, after a one-time reload, when a CDN file fails mid-load. Integrity hashes pin the CDN files to the vendored bytes, and a test checks that the two are identical.
+- Scoring runs single-threaded (`n_jobs=1`, set at load time in `backend/app/model_registry.py`): a worker pool per one-patient request cost about 1–3 s, and a prediction with SHAP now takes about 60 ms. The fitted models and their outputs are unchanged.
 
 **Performance and accessibility checks:**
 - **Rendering cost:** measured on integrated Intel Arc graphics with every effect on: 1.7 ms per frame for the explorer (2400×1600) and 0.35 ms for the landing scene (2880×1800), far inside the 60 fps budget of 16.7 ms.
@@ -229,7 +238,7 @@ python tools/build_anatomy.py
 
 | Endpoint | Returns |
 |---|---|
-| `GET /health` | Service and model status |
+| `GET /health` | Service and model status (`503` until the models are loaded) |
 | `GET /model-info` | Frozen v1 manifest (holdout metrics, artifact hashes) + v1.1 post-processing |
 | `POST /predict` | Calibrated probabilities, operating-threshold flags, consistency check, per-feature SHAP explanations, input warnings |
 | `GET /global-importance` | Share of total mean \|SHAP\| per clinical feature and target |
@@ -243,6 +252,35 @@ python tools/build_anatomy.py
   - non-integer discrete codes;
   - target columns.
 - Values outside the development cohort's range are accepted with a warning.
+
+## Deployment and operations
+
+**Container:** `Dockerfile` builds a `python:3.13-slim` image with only the runtime files (models, deployment artifacts, frontend). It runs as a non-root user with 2 uvicorn workers (`WEB_CONCURRENCY`) and has a health check on `/health`.
+
+**Configuration (environment variables):**
+
+| Variable | Default | Meaning |
+|---|---|---|
+| `CRE_ALLOWED_ORIGINS` | empty | Comma-separated browser origins allowed to call the API cross-site. Empty means same-origin only, which is all the bundled frontend needs. |
+| `CRE_PREDICT_RATE_PER_MIN` | `120` | `POST /predict` requests per client IP per minute, per worker (bursts up to a quarter of that). `0` disables the limit. |
+| `CRE_MAX_BODY_BYTES` | `65536` | Largest accepted request body; a patient payload is about 2 KB. |
+| `CRE_ENABLE_DOCS` | `true` | Serve the interactive API docs at `/docs` and `/redoc`. |
+| `CRE_LOG_LEVEL` | `INFO` | Log level. |
+| `WEB_CONCURRENCY` | `2` | Worker processes (container only). |
+| `FORWARDED_ALLOW_IPS` | `127.0.0.1` | Address of a trusted reverse proxy, so client IPs and HTTPS are read from `X-Forwarded-*` headers (uvicorn setting). |
+
+**Security measures:**
+- **Headers:** every response sets `X-Content-Type-Options`, `X-Frame-Options: DENY`, `Referrer-Policy`, `Permissions-Policy` and `Cross-Origin-Opener-Policy`; HTTPS responses add HSTS.
+- **Content-Security-Policy:** the two pages get a per-response nonce. Only the site's own scripts, the pinned CDN (with integrity hashes) and nonce-tagged inline scripts can run; framing and plugins are blocked.
+- **Inputs:** strict schema (unknown fields such as outcome labels are rejected), a request-size limit, and a per-client rate limit on predictions (`429` with `Retry-After`).
+- **Errors:** unexpected failures return a generic message with a request ID; details go only to the server log.
+- **Model integrity:** each pipeline's SHA-256 is checked against the v1.1 artifact before the service starts.
+
+**Logs and tracing:** each request gets an `X-Request-ID` (or keeps a valid one sent by the client), which appears in the access log and in error responses. The access log records method, path, status, duration and request ID only, never request bodies (patient data) or client addresses.
+
+**CI:** `.github/workflows/ci.yml` runs the test suite on every push and pull request, then builds the Docker image and smoke-tests it (health, examples, a prediction and the explorer page).
+
+**Scaling notes:** the rate limit is kept in memory per worker, so the effective limit is (workers × limit); for several hosts, enforce it at the reverse proxy. Put TLS in front of the container (a reverse proxy or load balancer) and point its health check at `/health`, which returns `503` until the models are loaded.
 
 ## Limitations
 

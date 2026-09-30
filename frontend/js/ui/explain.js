@@ -8,17 +8,23 @@ let domainFilter = '';
 
 function divergingChart(contribs, units) {
   const top = contribs.slice(0, 10);
-  const max = Math.max(...top.map(c => c.relative_contribution_pct), 1);
+  // Zero sits where the data needs it: one shared scale across both directions, with room for the % label on each
+  // side that has bars (an all-raising patient gets a left-anchored chart instead of an empty left half).
+  const peak = up => Math.max(0, ...top.filter(c => (c.attribution > 0) === up).map(c => c.relative_contribution_pct));
+  const up = peak(true), down = peak(false);
+  const padL = down ? 16 : 0, padR = up ? 16 : 0;
+  const scale = (100 - padL - padR) / Math.max(up + down, 1e-9);
+  const zero = padL + down * scale;
   const rows = top.map(c => {
     const raise = c.attribution > 0;
-    const w = (c.relative_contribution_pct / max) * 44;   // % of track width per side (leave room for labels)
+    const w = c.relative_contribution_pct * scale;
     const name = LABELS[c.feature] || c.feature;
     const row = h('div', { class: 'drow', tabindex: 0, 'aria-label': `${name}, ${formatValue(c.feature, c.value)}: ${raise ? 'raises' : 'lowers'} the estimate, ${c.relative_contribution_pct.toFixed(1)}% of total attribution` },
       h('div', { class: 'name' }, name, h('br'), h('span', { class: 'val' }, formatValue(c.feature, c.value))),
       h('div', { class: 'dtrack' },
-        h('div', { class: 'axis' }),
-        h('div', { class: `bar ${raise ? 'raise' : 'lower'}`, style: { width: `${w}%` } }),
-        h('div', { class: 'lbl', style: raise ? { left: `calc(50% + ${w}% + 4px)` } : { right: `calc(50% + ${w}% + 4px)` } }, `${c.relative_contribution_pct.toFixed(0)}%`)));
+        h('div', { class: 'axis', style: { left: `${zero}%` } }),
+        h('div', { class: `bar ${raise ? 'raise' : 'lower'}`, style: raise ? { left: `${zero}%`, width: `${w}%` } : { right: `${100 - zero}%`, width: `${w}%` } }),
+        h('div', { class: 'lbl', style: raise ? { left: `calc(${zero + w}% + 4px)` } : { right: `calc(${100 - zero + w}% + 4px)` } }, `${c.relative_contribution_pct.toFixed(0)}%`)));
     const tipBuild = () => [
       h('strong', {}, `${raise ? '+' : '−'}${c.relative_contribution_pct.toFixed(1)}% of total attribution`),
       h('div', {}, `${name}: ${formatValue(c.feature, c.value)}`),

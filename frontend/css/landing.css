@@ -61,19 +61,19 @@ body[data-stage="soft"] #stage { opacity: 0.5; }
 .nav {
   position: fixed; top: 0; left: 0; right: 0; z-index: var(--z-nav);
   display: flex; align-items: center; gap: 28px; padding: 14px clamp(16px, 4vw, 48px);
-  background: linear-gradient(180deg, rgba(13, 11, 11, 0.85), rgba(13, 11, 11, 0));
-  backdrop-filter: blur(6px);
+  border-bottom: 1px solid transparent; transition: background-color 0.3s ease, border-color 0.3s ease;
 }
+/* Once the page scrolls, the bar turns solid so headings never smear through it. */
+.nav.scrolled { background: rgba(13, 11, 11, 0.95); border-bottom-color: var(--line); backdrop-filter: blur(16px) saturate(140%); }
 .brand { display: inline-flex; align-items: center; gap: 10px; font-weight: 600; letter-spacing: -0.01em; text-decoration: none; }
 .brand svg { width: 22px; height: 22px; fill: #e31a1c; filter: drop-shadow(0 0 10px rgba(227, 26, 28, 0.55)); }
 .nav nav { display: flex; gap: 22px; margin-left: auto; font-size: 14px; }
 .nav nav a { color: var(--ink-2); text-decoration: none; transition: color 0.2s; }
 .nav nav a:hover, .nav nav a.active { color: var(--ink); }
+/* Disclaimer sits in the first screen (and again in the footer) instead of floating over every section. */
 .disclaimer-bar {
-  position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); z-index: var(--z-nav);
-  width: min(760px, calc(100vw - 32px)); padding: 9px 14px; border-radius: 999px; text-align: center;
-  font-size: 12.5px; color: #ffe9b0; background: rgba(51, 40, 10, 0.82); border: 1px solid rgba(250, 178, 25, 0.35);
-  backdrop-filter: blur(10px);
+  position: absolute; left: 50%; bottom: 22px; transform: translateX(-50%); z-index: 3;
+  font-size: 12.5px; white-space: nowrap; max-width: calc(100% - 32px) !important;
 }
 
 /* ---------- buttons ---------- */
@@ -177,7 +177,7 @@ section { padding: clamp(96px, 14vh, 160px) clamp(16px, 5vw, 64px); max-width: 1
 .shap-row .name { font-size: 14px; line-height: 1.25; }
 .shap-row .val { display: block; color: var(--ink-3); font-size: 12.5px; font-variant-numeric: tabular-nums; }
 .shap-track { position: relative; height: 22px; }
-.shap-track::before { content: ""; position: absolute; left: 50%; top: -6px; bottom: -6px; width: 1px; background: var(--line-2); }
+.shap-track::before { content: ""; position: absolute; left: var(--zero, 50%); top: -6px; bottom: -6px; width: 1px; background: var(--line-2); }
 .shap-bar { position: absolute; top: 4px; height: 14px; }
 .shap-bar.raise { left: 50%; background: var(--raise); border-radius: 0 4px 4px 0; transform-origin: left; }
 .shap-bar.lower { right: 50%; background: var(--lower); border-radius: 4px 0 0 4px; transform-origin: right; }
@@ -206,7 +206,7 @@ section { padding: clamp(96px, 14vh, 160px) clamp(16px, 5vw, 64px); max-width: 1
 .closing { min-height: 90vh; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 22px; }
 .closing h2 { font-size: clamp(44px, 7vw, 104px); letter-spacing: -0.045em; line-height: 0.98; }
 .closing p { max-width: 52ch; }
-.footer { position: relative; z-index: var(--z-content); max-width: 1360px; margin: 0 auto; padding: 36px clamp(16px, 5vw, 64px) 96px; border-top: 1px solid var(--line); display: grid; gap: 10px; font-size: 13px; color: var(--ink-2); }
+.footer { position: relative; z-index: var(--z-content); max-width: 1360px; margin: 0 auto; padding: 36px clamp(16px, 5vw, 64px) 48px; border-top: 1px solid var(--line); display: grid; gap: 10px; font-size: 13px; color: var(--ink-2); }
 
 /* ---------- hero intro: pure CSS, starts on first paint (never waits for scripts) ---------- */
 @keyframes rise-line { from { transform: translateY(105%); } to { transform: none; } }
@@ -253,7 +253,7 @@ section { padding: clamp(96px, 14vh, 160px) clamp(16px, 5vw, 64px); max-width: 1
 @media (prefers-reduced-motion: reduce) { @view-transition { navigation: none; } }
 
 /* ---------- try it (live what-if on the example patient) ---------- */
-.tryit { min-height: 164px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); display: grid; gap: 7px; }
+.tryit { min-height: 30px; margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); display: grid; gap: 7px; }
 .try-head { display: flex; gap: 8px; align-items: baseline; font-size: 13px; font-weight: 600; }
 .try-head .muted { font-weight: 400; font-size: 12px; }
 .try-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--ink-2); margin-top: 3px; }
@@ -294,3 +294,49 @@ section { padding: clamp(96px, 14vh, 160px) clamp(16px, 5vw, 64px); max-width: 1
   .fp-row, .fp-axis { grid-template-columns: 70px 1fr 64px; gap: 10px; }
   .fp-grid { left: 80px; right: 74px; }
 }
+
+/* ---------- brand & calm notices (v3) ---------- */
+.brand { gap: 11px; }
+.brand-mark { width: 28px; height: 28px; flex: none; filter: none; }
+.brand-mark rect { fill: #1b1515; stroke: rgba(244, 239, 233, 0.14); stroke-width: 1; }
+.brand-mark path { fill: none; stroke: #ea6a4f; stroke-width: 2.3; stroke-linecap: round; stroke-linejoin: round; }
+.brand .brand-name { font-size: 15.5px; font-weight: 600; letter-spacing: -0.02em; margin: 0; }
+.nav .brand { font-size: 15.5px; }
+.nav .brand svg.brand-mark { width: 28px; height: 28px; filter: none; }
+.nav .brand .brand-mark rect { fill: #1b1515; }
+
+/* Disclaimer: quiet glass bar with an info mark (not an alert). */
+.disclaimer-bar {
+  display: flex; align-items: center; gap: 10px; justify-content: center; width: auto; max-width: min(820px, calc(100vw - 32px));
+  padding: 8px 16px 8px 12px; border-radius: 999px; text-align: left;
+  color: var(--ink-2); background: rgba(20, 16, 16, 0.78); border: 1px solid var(--line-2);
+  backdrop-filter: blur(14px) saturate(140%); box-shadow: 0 10px 40px -16px rgba(0, 0, 0, 0.7);
+}
+.disclaimer-bar p { margin: 0; white-space: inherit; }   /* p's text-wrap would otherwise override nowrap */
+.disclaimer-bar strong { color: var(--ink); font-weight: 500; }
+.disclaimer-bar svg { width: 15px; height: 15px; flex: none; fill: none; stroke: var(--ink-3); stroke-width: 1.8; stroke-linecap: round; }
+@media (max-width: 1000px) { .disclaimer-bar { white-space: normal; } }
+@media (max-width: 700px) { .disclaimer-bar { border-radius: 14px; align-items: flex-start; } .disclaimer-bar svg { margin-top: 2px; } }
+
+.try-toggle {
+  display: flex; align-items: baseline; gap: 8px; width: 100%; padding: 2px 0; border: none; background: none; cursor: pointer;
+  color: var(--ink); font: 600 13px var(--sans); text-align: left;
+}
+.try-toggle .muted { font-weight: 400; font-size: 12px; }
+.try-toggle .chev { margin-left: auto; color: var(--ink-3); font-size: 16px; line-height: 1; transition: transform 0.25s ease; }
+.try-toggle[aria-expanded="true"] .chev { transform: rotate(90deg); }
+.try-toggle:hover .chev { color: var(--ink); }
+.try-body { display: grid; gap: 7px; margin-top: 4px; }
+.try-body[hidden] { display: none; }
+
+/* Heartbeat sound toggle */
+.icon-btn {
+  display: inline-grid; place-items: center; width: 38px; height: 38px; margin-left: 4px; border-radius: 999px; cursor: pointer;
+  border: 1px solid var(--line-2); background: rgba(255, 255, 255, 0.03); color: var(--ink-2);
+  transition: color 0.2s, border-color 0.2s, background-color 0.2s;
+}
+.icon-btn:hover { color: var(--ink); border-color: var(--ink-3); }
+.icon-btn svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+.sound-btn[aria-pressed="true"] { color: var(--ink); border-color: rgba(234, 106, 79, 0.6); background: rgba(234, 106, 79, 0.12); }
+.nav .icon-btn { margin-left: 0; }
+

@@ -90,6 +90,27 @@ def test_frontend_is_served(client):
         assert client.get(asset).status_code == 200
 
 
+def test_frontend_libraries_cdn_with_offline_fallback(client):
+    """Libraries load from the CDN when reachable and from /vendor otherwise (js/deps.js). The CDN files are pinned
+    by integrity hashes that must equal the vendored bytes, so both sources are byte-identical."""
+    import base64, hashlib, re
+    for path in ("/", "/app.html"):
+        text = client.get(path).text
+        assert 'src="js/deps.js"' in text and "startApp(" in text, path
+        assert 'type="importmap"' not in text and 'type="module"' not in text, path   # only deps.js loads modules
+    deps = client.get("/js/deps.js").text
+    assert "cdn.jsdelivr.net/npm/three@0.170.0/" in deps and "./vendor/three/" in deps and "vendor/fonts/fonts.css" in deps
+    blocks = dict(re.findall(r"(three|gsap): \{(.*?)\n    \}", deps, re.S))
+    assert set(blocks) == {"three", "gsap"}
+    for pkg, block in blocks.items():
+        for file, sri in re.findall(r"'([^']+)': '(sha384-[^']+)'", block):
+            body = client.get(f"/vendor/{pkg}/{file}")
+            assert body.status_code == 200, file
+            assert "sha384-" + base64.b64encode(hashlib.sha384(body.content).digest()).decode() == sri, file
+    for asset in ("/vendor/fonts/fonts.css", "/vendor/fonts/Geist-normal-latin.woff2"):
+        assert client.get(asset).status_code == 200, asset
+
+
 def test_operating_curves_endpoint(client):
     data = client.get("/operating-curves").json()
     assert "holdout was not used" in data["data"]

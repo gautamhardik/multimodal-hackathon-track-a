@@ -9,7 +9,8 @@ import { heatColor, pct } from '../ui/colors.js';
 import { loadAnatomy, loadThorax } from './anatomy-loader.js';
 import { installVesselFx } from './vessel-fx.js';
 
-const DIM = new THREE.Color('#6f6566');   // focus mode: unselected arteries fade towards this
+const DIM = new THREE.Color('#6f6566');
+const yieldToMain = () => new Promise(r => setTimeout(r, 0));   // focus mode: unselected arteries fade towards this
 
 // Camera framing is expressed relative to the anatomy's bounding radius, so both heart sources frame alike.
 const VIEW_DISTANCE = 3.5;      // x radius
@@ -89,6 +90,7 @@ export class HeartScene {
 
   async _loadHeart() {
     const a = await loadAnatomy();
+    await yieldToMain();
     this.anatomy = a;
     this.source = a.source;
     this.heart.add(a.root);
@@ -99,7 +101,9 @@ export class HeartScene {
       for (const m of a.vessels[sys] || []) m.material = this.systemMaterials[sys];
       this.pickTargets.push(...(a.hits[sys] || []));
     }
+    await yieldToMain();
     this.fx = installVesselFx(a, this.systemMaterials, { haloWidth: this.radius * 0.016 });
+    await yieldToMain();
     this.introStart = this.reducedMotion ? null : performance.now();
     for (const sys of SYSTEM_ORDER) if (a.anchors[sys]) this._addLabel(sys, a.anchors[sys]);
     if (a.anchors.LM) this._addNeutralLabel(a.anchors.LM);
@@ -300,8 +304,9 @@ export class HeartScene {
     this.currentView = id;
     if (!this.anatomy) return;
     if (view.torso) this.setTorso(true);
-    // Portrait canvases (phones) need more distance so the whole heart fits horizontally.
-    const fit = this.camera.aspect < 1 ? 1 / Math.max(this.camera.aspect, 0.5) : 1;
+    // Narrow canvases need more distance so the whole heart fits horizontally (its projected half-width is
+    // up to ~0.6 of the bounding radius, so keep at least 0.95 radius of visible half-width).
+    const fit = Math.max(1, 0.95 / Math.max(this.camera.aspect, 0.4));
     const dist = this.radius * (view.torso ? CHEST_DISTANCE : VIEW_DISTANCE) * fit * zoom;
     const target = view.torso ? this.center.clone().lerp(this.torso.position, 0.5) : this.center.clone();
     const pos = new THREE.Vector3(...view.dir).normalize().multiplyScalar(dist).add(target);
@@ -325,16 +330,20 @@ export class HeartScene {
     if (on) this._ensureThorax();
   }
 
-  setBeat(on, bpm) { this.beat = on && !this.reducedMotion; if (bpm) this.bpm = bpm; }
+  setBeat(on, bpm) { this.beatOn = on; this.beat = on && !this.reducedMotion; if (bpm) this.bpm = bpm; }
 
-  // Labels are HTML overlays and are never occluded, so fade the ones whose vessel faces away from the camera.
+  /** Beat timing for the heartbeat sound: scene seconds and rate, or null while the heartbeat is off. */
+  beatClock() { return this.beatOn && !this.paused ? { t: this.clock.elapsedTime, bpm: this.bpm } : null; }
+
+  // Labels are HTML overlays and are never occluded, so hide the ones whose vessel faces away from the camera
+  // (a half-transparent pill over the heart reads as a rendering glitch). The summary chips still reach every vessel.
   _fadeHiddenLabels() {
     const tmp = new THREE.Vector3();
     const fade = lab => {
       lab.obj.getWorldPosition(tmp);
       const facing = lab.normal.dot(tmp.subVectors(this.camera.position, tmp).normalize());
       const hidden = facing < 0.05;
-      lab.el.style.opacity = hidden ? '0.18' : '';
+      if (lab.behind !== hidden) { lab.behind = hidden; lab.el.classList.toggle('behind', hidden); }
       lab.el.style.pointerEvents = hidden || lab === this.lmLabel ? 'none' : 'auto';
     };
     for (const k in this.labels) fade(this.labels[k]);

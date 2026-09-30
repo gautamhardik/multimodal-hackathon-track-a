@@ -95,7 +95,7 @@ export class PatientForm {
   _refreshNav() {
     for (const [id, g] of Object.entries(this.groups)) {
       const n = g.fields.filter(f => f.type === 'chestpain' ? this.values['Typical Chest Pain'] === 1 || this.values.Atypical === 'Y' || this.values.Nonanginal === 'Y' : isFlagged(f, this.values[f.key])).length;
-      g.count.textContent = n ? `${n} flagged` : '';
+      g.count.textContent = n ? `${n} abnormal` : '';
       const chip = this.chips?.find(c => c.dataset.group === id);
       if (chip) {
         chip.querySelector('.chip-count').textContent = n ? String(n) : '';

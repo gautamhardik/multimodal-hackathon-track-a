@@ -8,6 +8,7 @@ import { loadAnatomy } from './anatomy-loader.js';
 import { installVesselFx } from './vessel-fx.js';
 
 const DIM = new THREE.Color('#5e5052');
+const yieldToMain = () => new Promise(r => setTimeout(r, 0));
 const TARGET_RADIUS = 1.55;
 
 export class StoryScene {
@@ -63,6 +64,7 @@ export class StoryScene {
 
   async load() {
     const a = await loadAnatomy();
+    await yieldToMain();
     this.anatomy = a;
     const holder = new THREE.Group();
     holder.add(a.root);
@@ -70,7 +72,9 @@ export class StoryScene {
     a.root.position.sub(sphere.center);
     holder.scale.setScalar(TARGET_RADIUS / sphere.radius);
     for (const sys of SYSTEM_ORDER) for (const m of a.vessels[sys] || []) m.material = this.materials[sys];
+    await yieldToMain();
     this.fx = installVesselFx(a, this.materials, { haloWidth: sphere.radius * 0.018 });
+    await yieldToMain();
     this.pivot.add(holder);
     this.paused = true;
     try {
@@ -96,6 +100,9 @@ export class StoryScene {
     this.camera.aspect = w / h;
     this.camera.updateProjectionMatrix();
   }
+
+  /** Beat timing for the heartbeat sound (scene seconds and rate). */
+  beatClock() { return this.paused ? null : { t: this.clock.elapsedTime, bpm: this.bpm }; }
 
   _tick() {
     if (this.paused) return;

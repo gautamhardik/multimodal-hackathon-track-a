@@ -1,24 +1,29 @@
 import json
 import logging
+import time
+import uuid
 from contextlib import asynccontextmanager
 
 import pandas as pd
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, Request, status
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.gzip import GZipMiddleware
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.staticfiles import StaticFiles
 
-from .config import (COLOR_BANDS_PATH, DISCLAIMER, FRONTEND_DIR, GLOBAL_IMPORTANCE_PATH, HOLDOUT_CI_PATH, MANIFEST_PATH,
-                     OPERATING_CURVES_PATH,
-                     MODEL_VERSION, PROBABILITY_DEFINITION, TARGET_NAMES)
+from .config import (ALLOWED_ORIGINS, COLOR_BANDS_PATH, DISCLAIMER, ENABLE_DOCS, FRONTEND_DIR, GLOBAL_IMPORTANCE_PATH,
+                     HOLDOUT_CI_PATH, LOG_LEVEL, MANIFEST_PATH, MAX_BODY_BYTES, MODEL_VERSION, OPERATING_CURVES_PATH,
+                     PREDICT_RATE_PER_MIN, PROBABILITY_DEFINITION, TARGET_NAMES)
 from .examples import example_patients
 from .inference import InferenceEngine
 from .model_registry import ModelRegistry
 from .schemas import PatientInput, PredictionResponse
+from .security import REQUEST_ID_RE, SECURITY_HEADERS, RateLimiter, add_nonce, new_nonce, page_csp
 from .shap_service import SHAPService
 
-logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
+logging.basicConfig(level=LOG_LEVEL, format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 logger = logging.getLogger("cardio_api")
+access_log = logging.getLogger("cardio_api.access")
 
 
 @asynccontextmanager
@@ -39,27 +44,69 @@ app = FastAPI(
         f"**Probability definition**: {PROBABILITY_DEFINITION}\n\n**Disclaimer**: {DISCLAIMER}"
     ),
     version=MODEL_VERSION,
-    lifespan=lifespan
+    lifespan=lifespan,
+    docs_url="/docs" if ENABLE_DOCS else None,
+    redoc_url="/redoc" if ENABLE_DOCS else None,
+    openapi_url="/openapi.json" if ENABLE_DOCS else None,
 )
 
-# Local development frontends; no cookies or credentials are used by this API.
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=False,
-    allow_methods=["GET", "POST"],
-    allow_headers=["*"],
-)
+# The bundled frontend is same-origin, so cross-origin access is off unless CRE_ALLOWED_ORIGINS lists origins.
+# No cookies or credentials are used by this API.
+if ALLOWED_ORIGINS:
+    app.add_middleware(CORSMiddleware, allow_origins=ALLOWED_ORIGINS, allow_credentials=False,
+                       allow_methods=["GET", "POST"], allow_headers=["Content-Type", "X-Request-ID"])
 
 app.add_middleware(GZipMiddleware, minimum_size=1024)
 
+predict_limiter = RateLimiter(PREDICT_RATE_PER_MIN)
+
+
+def _error(code: int, detail: str, request_id: str, headers=None) -> JSONResponse:
+    return JSONResponse({"detail": detail, "request_id": request_id}, status_code=code, headers=headers)
+
 
 @app.middleware("http")
-async def revalidate_static(request, call_next):
-    """Make browsers revalidate frontend files (ETag) so an updated UI is never served stale from cache."""
-    response = await call_next(request)
-    if request.method == "GET" and request.url.path.split("/")[1] in ("", "index.html", "app.html", "js", "css", "assets"):
-        response.headers["Cache-Control"] = "no-cache"
+async def edge(request: Request, call_next):
+    """Request IDs, body-size and rate limits, safe 500s, security and cache headers, and an access log that
+    never records request bodies (patient data) or client addresses."""
+    start = time.perf_counter()
+    incoming = request.headers.get("x-request-id", "")
+    request_id = incoming if REQUEST_ID_RE.match(incoming) else uuid.uuid4().hex[:16]
+    request.state.request_id = request_id
+    path = request.url.path
+
+    response = None
+    if request.method == "POST":
+        length = request.headers.get("content-length")
+        if length is None:
+            response = _error(411, "Content-Length required.", request_id)
+        elif not length.isdigit() or int(length) > MAX_BODY_BYTES:
+            response = _error(413, f"Request body larger than {MAX_BODY_BYTES} bytes.", request_id)
+        elif path == "/predict":
+            client = request.client.host if request.client else "unknown"
+            allowed, retry = predict_limiter.check(client)
+            if not allowed:
+                response = _error(429, "Too many predictions from this address; try again shortly.", request_id,
+                                  {"Retry-After": str(retry)})
+    if response is None:
+        try:
+            response = await call_next(request)
+        except Exception:
+            logger.exception("Unhandled error [request_id=%s] %s %s", request_id, request.method, path)
+            response = _error(500, "Internal server error.", request_id)
+
+    response.headers["X-Request-ID"] = request_id
+    for k, v in SECURITY_HEADERS.items():
+        response.headers.setdefault(k, v)
+    if request.url.scheme == "https":
+        response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
+    top = path.split("/")[1]
+    if request.method == "GET" and top in ("", "index.html", "app.html", "js", "css", "assets"):
+        response.headers["Cache-Control"] = "no-cache"   # revalidate (ETag) so an updated UI is never served stale
+    elif request.method == "GET" and top == "vendor" and response.status_code == 200:
+        response.headers["Cache-Control"] = "public, max-age=604800"   # pinned third-party versions (three 0.170, GSAP 3.15)
+    access_log.info("%s %s %d %.0fms request_id=%s", request.method, path, response.status_code,
+                    (time.perf_counter() - start) * 1000, request_id)
     return response
 
 
@@ -74,7 +121,10 @@ def _read_json(path):
 
 @app.get("/health", summary="Health Check", tags=["System"])
 def health_check():
+    """Readiness: 200 once all four verified pipelines are loaded, 503 otherwise (use for load-balancer checks)."""
     registry = ModelRegistry.get_instance()
+    if not registry.is_loaded:
+        return JSONResponse({"status": "starting", "models_loaded": False}, status_code=503)
     return {
         "status": "ok",
         "service": "Cardiovascular Multi-Target Risk API",
@@ -154,18 +204,34 @@ def get_example_patients():
 
 @app.post("/predict", response_model=PredictionResponse, summary="Predict CAD & Vessel Stenosis with SHAP Explanations",
           tags=["Inference"])
-def predict_patient(patient: PatientInput):
+def predict_patient(patient: PatientInput, request: Request):
     """
     Accepts the clinical, laboratory, ECG and echocardiographic predictors (BMI and Obesity are derived when omitted).
     Returns calibrated probabilities, flags at development-validated thresholds, a Cath/vessel consistency check,
     exact per-feature SHAP explanations with raw values, and warnings for inputs outside the training range.
     """
+    request_id = request.state.request_id
     try:
-        return engine.predict(patient)
+        return engine.predict(patient, request_id=request_id)
     except Exception:
-        logger.exception("Inference execution failed")
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Inference failed; see server logs.")
+        logger.exception("Inference execution failed [request_id=%s]", request_id)
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f"Inference failed (reference {request_id}).")
 
+
+# The two pages are served with a per-response CSP nonce on every <script> (the import map is built at runtime by
+# js/deps.js, which copies the nonce). Everything else in the frontend is plain static files.
+PAGES = {"/": "index.html", "/index.html": "index.html", "/app.html": "app.html"}
+
+
+def _page(request: Request):
+    nonce = new_nonce()
+    html = (FRONTEND_DIR / PAGES[request.url.path]).read_text(encoding="utf-8")
+    return HTMLResponse(add_nonce(html, nonce), headers={"Content-Security-Policy": page_csp(nonce)})
+
+
+for _route in PAGES:
+    app.add_api_route(_route, _page, methods=["GET"], include_in_schema=False)
 
 # The dashboard + 3D viewer is served from the same origin. Mounted last so API routes take precedence.
 if FRONTEND_DIR.exists():

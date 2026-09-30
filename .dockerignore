@@ -1,0 +1,16 @@
+# Keep the image to what the service needs (see the COPY lines in Dockerfile).
+.git
+.github
+.claude
+.pytest_cache
+**/__pycache__
+**/*.pyc
+*.ipynb
+ml
+tools
+artifacts/figures
+artifacts/dev_search
+artifacts/notebook*
+Track A.pdf
+COMPLETE_APPLICATION_VALIDATION_REPORT.md
+requirements-notebooks.txt

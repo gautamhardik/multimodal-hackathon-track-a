@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 
 # Base paths
@@ -52,3 +53,27 @@ PROBABILITY_DEFINITION = (
     "coronary angiography (CAD prevalence 71%). It is not a population risk score and does not "
     "indicate the degree or location of narrowing within the vessel."
 )
+
+
+# ---------------------------------------------------------------- runtime settings (environment variables)
+def _env_bool(name: str, default: bool) -> bool:
+    return os.getenv(name, str(default)).strip().lower() in ("1", "true", "yes", "on")
+
+
+def _env_int(name: str, default: int) -> int:
+    try:
+        return int(os.getenv(name, str(default)))
+    except ValueError:
+        return default
+
+
+# Browser origins allowed to call the API cross-site (comma-separated). Empty = same-origin only, which is all the
+# bundled frontend needs.
+ALLOWED_ORIGINS = [o.strip() for o in os.getenv("CRE_ALLOWED_ORIGINS", "").split(",") if o.strip()]
+# POST /predict requests per client IP per minute (per worker process); 0 disables the limit.
+PREDICT_RATE_PER_MIN = _env_int("CRE_PREDICT_RATE_PER_MIN", 120)
+# Largest accepted request body. A full patient payload is about 2 KB.
+MAX_BODY_BYTES = _env_int("CRE_MAX_BODY_BYTES", 64 * 1024)
+# Interactive API docs at /docs and /redoc.
+ENABLE_DOCS = _env_bool("CRE_ENABLE_DOCS", True)
+LOG_LEVEL = os.getenv("CRE_LOG_LEVEL", "INFO").upper()

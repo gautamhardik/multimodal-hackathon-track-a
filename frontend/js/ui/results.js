@@ -11,7 +11,7 @@ function meter(target, p, label) {
   growWidth(fill, `meter-${target}`, p);
   return h('div', {},
     h('div', { class: 'meter', role: 'img', dataset: { target, role: 'meter' } }, fill, h('div', { class: 'thr' })),
-    h('div', { class: 'meter-scale' }, h('span', {}, '0%'), h('span', { dataset: { target, role: 'scale' } }), h('span', {}, '100%')));
+    h('div', { class: 'meter-scale' }, h('span', { class: 'thr-lbl', dataset: { target, role: 'scale' } })));
 }
 
 function thresholdNote(curves, target, thr) {
@@ -30,7 +30,10 @@ export function applyThreshold(root, { target, probability, thr, curves, label }
       moveTo(el.querySelector('.thr'), `thr-${target}`, 'left', Number((thr * 100).toFixed(2)));
       el.setAttribute('aria-label', `${label}: ${pct(probability)}; decision threshold ${pct(thr)}`);
     } else if (role === 'scale') {
-      el.textContent = `threshold ${pct(thr)} (${note})`;
+      // The label rides under the threshold tick; the shift keeps it inside the bar at either end.
+      el.textContent = `threshold ${pct(thr)} · ${note}`;
+      el.style.left = `${thr * 100}%`;
+      el.style.transform = `translateX(-${Math.round(thr * 100)}%)`;
     } else if (role === 'flag') {
       clear(el).append(icon(above ? 'flag' : 'check'),
         above ? `${target === 'Cath' ? 'CAD' : 'Stenosis'} flag: at or above the decision threshold` : 'Below the decision threshold');
@@ -69,7 +72,7 @@ export function renderResults(el, { prediction, performance, curves, selected, o
         `Uncalibrated output ${cad.uncalibrated_probability.toFixed(2)}.`)));
 
   if (!prediction.consistency.consistent) {
-    el.append(h('div', { class: 'notice warn', role: 'status' }, icon('warn'), h('div', {}, h('strong', {}, 'Check consistency. '), prediction.consistency.message)));
+    el.append(h('div', { class: 'notice info', role: 'status' }, icon('info'), h('div', {}, h('strong', {}, 'Note. '), prediction.consistency.message)));
   }
   for (const w of prediction.input_warnings) {
     el.append(h('div', { class: 'notice warn', role: 'status' }, icon('warn'), h('div', {}, w)));

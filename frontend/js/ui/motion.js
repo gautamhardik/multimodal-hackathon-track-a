@@ -1,4 +1,4 @@
-// Optional motion layer (GSAP, loaded from the CDN). The final state is always written first; animation only
+// Optional motion layer (GSAP, from the CDN or the local /vendor copy; see js/deps.js). The final state is always written first; animation only
 // interpolates towards it. Every helper is a no-op when GSAP is unavailable or the user prefers reduced motion.
 let gsap = null;
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -9,7 +9,7 @@ export async function initMotion() {
     const m = await import('gsap');
     gsap = m.gsap || m.default;
   } catch {
-    gsap = null;   // CDN unavailable: the app works without motion
+    gsap = null;   // library unavailable: the app works without motion
   }
 }
 

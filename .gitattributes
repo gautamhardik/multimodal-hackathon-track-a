@@ -1,0 +1,9 @@
+# Keep third-party and binary artefacts byte-exact on every platform: js/deps.js pins the vendored files by
+# sha384 and the model registry verifies each pipeline's sha256, so no line-ending conversion may touch them.
+frontend/vendor/** -text
+*.joblib binary
+*.glb binary
+*.woff2 binary
+*.xlsx binary
+*.png binary
+*.pdf binary

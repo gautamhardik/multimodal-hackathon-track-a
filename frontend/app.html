@@ -5,40 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Explorer · Coronary Risk Explorer</title>
   <meta name="description" content="Interactive 3D coronary visualisation of model-estimated CAD and vessel stenosis probabilities with SHAP explanations. Decision support and education only.">
-  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 28S3 20 3 11a6.5 6.5 0 0 1 13-2 6.5 6.5 0 0 1 13 2c0 9-13 17-13 17z' fill='%23e31a1c'/%3E%3C/svg%3E">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%231b1515'/%3E%3Cpath d='M5.5 17.5h5l2.2-5.5 3.6 10 3-7.5 1.7 3h5.5' fill='none' stroke='%23ea6a4f' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Instrument+Serif:ital@0;1&display=swap" onload="this.onload=null;this.rel='stylesheet'">
-  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Geist:wght@300..700&family=Instrument+Serif:ital@0;1&display=swap"></noscript>
   <link rel="stylesheet" href="css/app.css">
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.min.js",
-        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/",
-        "gsap": "https://cdn.jsdelivr.net/npm/gsap@3.15.0/index.js"
-      }
-    }
-  </script>
+  <script src="js/deps.js"></script>   <!-- CDN when reachable, /vendor otherwise -->
 </head>
 <body>
   <a class="skip-link" href="#canvas-wrap">Skip to the 3D viewer</a>
   <header class="topbar">
     <a class="brand" href="./" title="Back to the overview">
-      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 28S3 20 3 11a6.5 6.5 0 0 1 13-2 6.5 6.5 0 0 1 13 2c0 9-13 17-13 17z"/></svg>
-      <div>
-        <h1>Coronary Risk Explorer</h1>
-        <p class="subtitle">Overall CAD and LAD / LCX / RCA stenosis estimates from routine clinical data</p>
-      </div>
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><rect x="0.75" y="0.75" width="30.5" height="30.5" rx="9"/><path d="M5.5 17.5h5l2.2-5.5 3.6 10 3-7.5 1.7 3h5.5"/></svg>
+      <h1 class="brand-name">Coronary Risk Explorer</h1>
     </a>
     <div class="disclaimer" role="note"
       title="Not a medical diagnostic device and not a substitute for clinical assessment or diagnostic imaging (coronary angiography). Probabilities are model estimates for patients similar to a single-centre referral cohort.">
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 1 21h22L12 2zm0 6 .01 7M12 18h.01"/></svg>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 7.7h.01"/></svg>
       <p><strong>For decision support and education only.</strong><span class="sep" aria-hidden="true"></span>Not a diagnostic device or a substitute for angiography.<span class="sr-only"> Not a substitute for clinical assessment. Probabilities are model estimates for patients similar to a single-centre referral cohort.</span></p>
     </div>
     <div class="topbar-actions">
       <a class="text-btn nav-back" href="./">Overview</a>
-      <span class="api-status" id="api-status" role="status">Connecting…</span>
+      <span class="api-status" id="api-status" role="status" hidden></span>
+      <button class="icon-btn sound-btn" id="sound-btn" type="button" aria-pressed="false" aria-label="Heartbeat sound"><svg viewBox="0 0 24 24" aria-hidden="true"></svg></button>
       <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle light or dark theme" title="Toggle theme">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg>
       </button>
@@ -84,6 +72,7 @@
               <dt><kbd>1</kbd>–<kbd>4</kbd></dt><dd>Overall CAD, LAD, LCX, RCA</dd>
               <dt><kbd>V</kbd></dt><dd>Next camera view</dd>
               <dt><kbd>F</kbd></dt><dd>Full-screen 3D</dd>
+              <dt><kbd>S</kbd></dt><dd>Heartbeat sound</dd>
               <dt><kbd>/</kbd></dt><dd>Find a measurement</dd>
               <dt><kbd>Esc</kbd></dt><dd>Clear selection · exit full screen</dd>
               <dt>Double-click</dt><dd>Empty space clears the selection</dd>
@@ -92,16 +81,20 @@
         </div>
         <div class="vessel-tooltip" id="vessel-tooltip" hidden></div>
         <div class="canvas-foot">
-          <div class="legend" id="legend" aria-label="Colour scale legend"></div>
-          <p class="canvas-note">Model output on reference anatomy, not an image of this patient's arteries. Colour covers the whole vessel because the model does not localise lesions. Anatomy: BodyParts3D © DBCLS, CC BY 4.0.</p>
+          <div class="legend" id="legend" aria-label="Colour scale legend"><div class="title">Probability of ≥ 50% stenosis</div><div class="bar" style="background: linear-gradient(90deg, #ffeda0 0.0%, #fed976 14.3%, #feb24c 28.6%, #fd8d3c 42.9%, #fc4e2a 57.1%, #e31a1c 71.4%, #bd0026 85.7%, #800026 100.0%)"></div><div class="ticks"><span>0</span><span>20</span><span>40</span><span>60</span><span>80</span><span>100%</span></div><div class="nm"><i></i>Left main &amp; great vessels: not modelled</div></div>
+          <p class="canvas-note">Reference anatomy, not this patient's arteries. Colour spans the whole vessel; the model does not localise lesions.<span class="credit">Anatomy: BodyParts3D © DBCLS, CC BY 4.0</span></p>
         </div>
       </div>
-      <div class="vessel-strip" id="vessel-strip" role="group" aria-label="Select a vessel"></div>
     </section>
 
     <aside class="panel panel-results" aria-label="Results">
       <div class="results-head">
-        <div class="summary-strip" id="summary-strip" role="group" aria-label="Current estimates"></div>
+        <div class="summary-strip" id="summary-strip" role="group" aria-label="Current estimates">
+          <button type="button" class="sum-chip" aria-pressed="true"><span class="sd"></span><span class="sn">CAD</span><span class="sv">—</span></button>
+          <button type="button" class="sum-chip" aria-pressed="false"><span class="sd"></span><span class="sn">LAD</span><span class="sv">—</span></button>
+          <button type="button" class="sum-chip" aria-pressed="false"><span class="sd"></span><span class="sn">LCX</span><span class="sv">—</span></button>
+          <button type="button" class="sum-chip" aria-pressed="false"><span class="sd"></span><span class="sn">RCA</span><span class="sv">—</span></button>
+        </div>
         <div class="tabs" role="tablist">
           <button role="tab" id="tab-results" aria-selected="true" aria-controls="pane-results">Results</button>
           <button role="tab" id="tab-threshold" aria-selected="false" aria-controls="pane-threshold">Threshold</button>
@@ -117,6 +110,6 @@
   </main>
 
   <div class="chart-tooltip" id="chart-tooltip" role="tooltip" hidden></div>
-  <script type="module" src="js/app.js"></script>
+  <script>startApp('js/app.js');</script>
 </body>
 </html>

@@ -5,6 +5,7 @@ import { SYSTEMS, SYSTEM_ORDER } from './config/anatomy.js';
 import { LABELS, formatValue } from './config/features.js';
 import { heatColor, pct } from './ui/colors.js';
 import { h, clear } from './ui/dom.js';
+import { HeartbeatSound, soundButton } from './ui/heartbeat.js';
 
 const $ = sel => document.querySelector(sel);
 const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -30,7 +31,8 @@ async function loadMotion() {
     gsap = core.gsap;
     ScrollTrigger = st.ScrollTrigger;
     gsap.registerPlugin(ScrollTrigger);
-  } catch {
+  } catch (e) {
+    window.depsFailed?.(e);
     gsap = null;
     ScrollTrigger = null;
   }
@@ -53,6 +55,7 @@ async function initStage() {
     if (gsap) gsap.from(scene.pose, { scale: scene.pose.scale * 0.6, duration: 1.8, ease: 'expo.out' });
     if (state.pred) paintHeart();
   } catch (e) {
+    if (window.depsFailed?.(e)) return;   // CDN module failed: the page reloads with the local copies
     console.warn('3D stage unavailable', e);
     $('#stage').remove();
   }
@@ -70,13 +73,28 @@ function faceSystem(sys) {
 }
 
 const POSES = {
-  top: { stage: '', pose: { x: 0.2, y: 0.08, scale: 1.0, rotX: 0.08, rotY: 0 }, spin: 1 },
+  top: { stage: '', pose: { x: 0.26, y: -0.06, scale: 0.8, rotX: 0.08, rotY: 0 }, spin: 1 },   // between the copy and the example card
   anatomy: { stage: '', pose: { x: 0.4, y: 0, scale: 1.18, rotX: 0.05 }, spin: 0 },
   method: { stage: 'dim', pose: { x: -0.35, y: 0, scale: 0.95, rotX: 0.1, rotY: 0 }, spin: 0.6 },
   explain: { stage: 'dim', pose: { x: 0.35, y: 0, scale: 0.95, rotX: 0.1 }, spin: 0.4 },
   evidence: { stage: 'hidden', pose: { x: 0, y: 0, scale: 0.8 }, spin: 0.3 },
   closing: { stage: 'soft', pose: { x: 0, y: -0.3, scale: 0.85, rotX: 0.05, rotY: 0 }, spin: 1 },
 };
+
+// Hero: centre the heart in the free space between the intro paragraph and the example card, measured from the
+// layout (the copy column is centred and capped in width while the canvas spans the whole window).
+// The heart's on-screen width is about 0.35 x viewport height x pose.scale, so it is scaled down to fit narrow gaps.
+function heroPose() {
+  const base = POSES.top.pose;
+  const lede = $('.hero .lede')?.getBoundingClientRect();
+  const card = $('#readout')?.getBoundingClientRect();
+  if (!lede || !card || !card.width || card.left <= lede.right) return { x: base.x, scale: base.scale };
+  const gap = card.left - lede.right;
+  return {
+    x: ((lede.right + card.left) / 2 / window.innerWidth) * 2 - 1,
+    scale: Math.max(0.55, Math.min(base.scale, (gap * 0.9) / (0.35 * window.innerHeight))),
+  };
+}
 
 function applySection(id, instant = false) {
   state.section = id;
@@ -85,6 +103,7 @@ function applySection(id, instant = false) {
   document.body.dataset.stage = narrow() && !cfg.stage ? 'soft' : cfg.stage;   // phones: text sits over the heart
   if (!scene) return;
   const pose = { ...cfg.pose };
+  if (id === 'top' && !narrow()) Object.assign(pose, heroPose());
   if (narrow()) { pose.x = 0; pose.y = id === 'top' ? 0.12 : 0; pose.scale = (pose.scale || 1) * 0.8; }
   if (id !== 'anatomy') scene.setFocus(null);
   scene.pose.spin = reduced ? 0 : cfg.spin;
@@ -156,10 +175,14 @@ function renderTryIt() {
   const out = h('output', { class: 'try-val' }, `${whatIf.ef}%`);
   const range = h('input', { type: 'range', min: 15, max: 70, step: 1, value: whatIf.ef, class: 'try-range', 'aria-label': 'Ejection fraction' });
   range.addEventListener('input', () => { whatIf.ef = Number(range.value); out.textContent = `${whatIf.ef}%`; runWhatIf(); });
-  box.append(
-    h('div', { class: 'try-head' }, h('span', {}, 'Try it'), h('span', { class: 'muted' }, 'change a measurement')),
+  const body = h('div', { class: 'try-body', id: 'try-body', hidden: true },
     h('div', { class: 'try-label' }, 'Chest pain'), h('div', { class: 'try-chips', role: 'group', 'aria-label': 'Chest pain' }, chips),
     h('div', { class: 'try-label' }, 'Ejection fraction', out), range);
+  const toggle = h('button', {
+    type: 'button', class: 'try-toggle', 'aria-expanded': 'false', 'aria-controls': 'try-body',
+    onclick: () => { const open = body.hidden; body.hidden = !open; toggle.setAttribute('aria-expanded', String(open)); },
+  }, h('span', {}, 'Try it'), h('span', { class: 'muted' }, 'change a measurement'), h('span', { class: 'chev', 'aria-hidden': 'true' }, '›'));
+  box.append(toggle, body);
   box.removeAttribute('aria-busy');
 }
 
@@ -206,18 +229,25 @@ function renderShap() {
   const p = state.pred;
   const sys = SYSTEM_ORDER.reduce((a, b) => (p.vessels[b].probability > p.vessels[a].probability ? b : a));
   const contribs = [...p.explanations[sys].all_contributions].sort((a, b) => b.relative_contribution_pct - a.relative_contribution_pct).slice(0, 7);
-  const max = Math.max(...contribs.map(c => c.relative_contribution_pct));
+  // Zero sits where the data needs it: one shared scale, room for the % label on each side that has bars
+  // (all-raising patients get a plain left-anchored chart instead of an empty left half).
+  const peak = sign => Math.max(0, ...contribs.filter(c => (c.attribution > 0) === sign).map(c => c.relative_contribution_pct));
+  const up = peak(true), down = peak(false);
+  const padL = down ? 10 : 0, padR = up ? 10 : 0;
+  const scale = (100 - padL - padR) / (up + down);
+  const zero = padL + down * scale;
   $('#explain-caption').textContent =
     `The ${whatIfDirty ? 'adjusted example' : "example patient's"} ${sys} estimate is ${pct(p.vessels[sys].probability)}. These seven measurements carry the largest share of its exact SHAP attribution.`;
   const box = clear($('#shap'));
   for (const c of contribs) {
-    const up = c.attribution > 0;
-    const w = (c.relative_contribution_pct / max) * 42;
-    box.append(h('div', { class: 'shap-row', role: 'listitem', 'aria-label': `${LABELS[c.feature] || c.feature}: ${up ? 'raises' : 'lowers'} the estimate, ${c.relative_contribution_pct.toFixed(0)}% of attribution` },
+    const raises = c.attribution > 0;
+    const w = c.relative_contribution_pct * scale;
+    const at = raises ? { left: `${zero}%` } : { right: `${100 - zero}%` };
+    box.append(h('div', { class: 'shap-row', role: 'listitem', 'aria-label': `${LABELS[c.feature] || c.feature}: ${raises ? 'raises' : 'lowers'} the estimate, ${c.relative_contribution_pct.toFixed(0)}% of attribution` },
       h('div', { class: 'name' }, LABELS[c.feature] || c.feature, h('span', { class: 'val' }, formatValue(c.feature, c.value))),
-      h('div', { class: 'shap-track' },
-        h('div', { class: `shap-bar ${up ? 'raise' : 'lower'}`, style: { width: `${w}%` } }),
-        h('div', { class: 'shap-pct', style: up ? { left: `calc(50% + ${w}% + 6px)` } : { right: `calc(50% + ${w}% + 6px)` } },
+      h('div', { class: 'shap-track', style: { '--zero': `${zero}%` } },
+        h('div', { class: `shap-bar ${raises ? 'raise' : 'lower'}`, style: { ...at, width: `${w}%` } }),
+        h('div', { class: 'shap-pct', style: raises ? { left: `calc(${zero + w}% + 6px)` } : { right: `calc(${100 - zero + w}% + 6px)` } },
           `${c.relative_contribution_pct.toFixed(0)}%`))));
   }
   box.append(h('p', { class: 'shap-foot' }, 'Share of total attribution for this patient. Explanations describe the model, not biological causes.'));
@@ -370,15 +400,31 @@ async function boot() {
   if (reduced) document.documentElement.classList.add('reduced');
   renderReadoutPlaceholder();
   drawEcg(72);
-  window.addEventListener('resize', () => drawEcg(Number(state.example?.features?.PR) || 72));
+  window.addEventListener('resize', () => {
+    drawEcg(Number(state.example?.features?.PR) || 72);
+    if (state.section === 'top') applySection('top', true);
+  });
   renderSteps();
   observeSections();
+  // Heartbeat sound, in time with the 3D heart (rate = the example patient's pulse).
+  const soundCtl = soundButton($('#sound-btn'), new HeartbeatSound(() => scene?.beatClock() ?? null, { volume: 0.5 }));
+  document.addEventListener('keydown', e => {
+    const t = e.target;
+    if (e.ctrlKey || e.metaKey || e.altKey || t.isContentEditable || ['INPUT', 'SELECT', 'TEXTAREA', 'BUTTON'].includes(t.tagName)) return;
+    if (e.key === 's' || e.key === 'S') soundCtl.toggle();
+  });
+  const nav = $('.nav');
+  const onScroll = () => nav.classList.toggle('scrolled', window.scrollY > 24);
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
   await loadMotion();
   introMotion();
   loadData();
   // The 3D stage starts once the page is readable and the browser is idle (keeps first paint fast).
-  const start = () => (window.requestIdleCallback ? requestIdleCallback(() => initStage(), { timeout: 1500 }) : setTimeout(initStage, 200));
-  if (document.readyState === 'complete') start(); else window.addEventListener('load', start, { once: true });
+  let started = false;
+  const start = () => !started && (started = true) && (window.requestIdleCallback ? requestIdleCallback(() => initStage(), { timeout: 1500 }) : setTimeout(initStage, 200));
+  if (document.readyState === 'complete') start();
+  else { window.addEventListener('load', start, { once: true }); setTimeout(start, 2500); }   // never wait on a slow third party
 }
 
 boot();

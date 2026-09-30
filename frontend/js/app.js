@@ -7,9 +7,10 @@ import { renderEvidence } from './ui/evidence.js';
 import { h, clear } from './ui/dom.js';
 import { heatColor, heatGradientCss, pct } from './ui/colors.js';
 import { countUp, enter, initMotion } from './ui/motion.js';
+import { HeartbeatSound, soundButton } from './ui/heartbeat.js';
 
 const $ = id => document.getElementById(id);
-const state = { prediction: null, performance: null, curves: null, globalImportance: null, examples: [], selected: 'Cath', tab: 'results' };
+const state = { prediction: null, deltas: null, performance: null, curves: null, globalImportance: null, examples: [], selected: 'Cath', tab: 'results' };
 let scene = null;
 let inflight = null;
 let debounce = null;
@@ -69,53 +70,37 @@ function select(target) {
 function renderLegend() {
   const el = clear($('legend'));
   el.append(
-    h('div', { class: 'title' }, 'Estimated probability of ≥ 50% stenosis in the vessel'),
+    h('div', { class: 'title' }, 'Probability of ≥ 50% stenosis'),
     h('div', { class: 'bar', style: { background: heatGradientCss() } }),
     h('div', { class: 'ticks' }, ['0', '20', '40', '60', '80', '100%'].map(t => h('span', {}, t))),
     h('div', { class: 'nm' }, h('i'), 'Left main & great vessels: not modelled'));
-}
-
-function stripValue(sys, v) {
-  const el = h('span', { class: 'pr' }, '—');
-  if (v) countUp(el, `strip-${sys}`, v.probability, x => pct(x));
-  return el;
-}
-
-function renderVesselStrip() {
-  const el = clear($('vessel-strip'));
-  for (const sys of SYSTEM_ORDER) {
-    const v = state.prediction?.vessels?.[sys];
-    el.append(h('button', {
-      type: 'button', class: 'vessel-btn', 'aria-pressed': String(state.selected === sys),
-      onclick: () => select(state.selected === sys ? 'Cath' : sys),
-    },
-      h('span', { class: 'sw', style: { background: v ? heatColor(v.probability) : 'var(--axis)', color: v ? heatColor(v.probability) : 'transparent' } }),
-      h('span', {}, h('span', { class: 'nm' }, sys), h('br'), h('span', { class: 'small muted' }, SYSTEMS[sys].name.replace(' artery', ''))),
-      stripValue(sys, v)));
-  }
 }
 
 // Pinned summary above the tabs: every estimate at a glance, flagged ones marked, click to select.
 function renderSummary() {
   const el = clear($('summary-strip'));
   const p = state.prediction;
+  const fresh = state.deltaFresh;   // animate the change badges once, not on every re-render
+  state.deltaFresh = false;
   for (const t of ['Cath', ...SYSTEM_ORDER]) {
     const prob = !p ? null : t === 'Cath' ? p.overall_cad.probability : p.vessels[t].probability;
     const flagged = prob != null && prob >= getThreshold(t);
     const value = h('span', { class: 'sv' }, '—');
     if (prob != null) countUp(value, `sum-${t}`, prob, x => pct(x));
+    const d = state.deltas?.[t];
+    const pts = d == null ? 0 : Math.round(d * 100);
     el.append(h('button', {
       type: 'button', class: `sum-chip${flagged ? ' flagged' : ''}`, 'aria-pressed': String(state.selected === t),
-      title: prob == null ? '' : `${t === 'Cath' ? 'Overall CAD' : SYSTEMS[t].name}: ${pct(prob)} — ${flagged ? 'at or above' : 'below'} the decision threshold (${pct(getThreshold(t))})`,
+      title: prob == null ? '' : `${t === 'Cath' ? 'Overall CAD' : SYSTEMS[t].name}: ${pct(prob)} — ${flagged ? 'at or above' : 'below'} the decision threshold (${pct(getThreshold(t))})${pts ? `; ${pts > 0 ? 'up' : 'down'} ${Math.abs(pts)} points after your last change` : ''}`,
       onclick: () => select(t),
     },
       h('span', { class: 'sd', style: prob == null ? {} : { background: heatColor(prob), color: heatColor(prob) } }),
-      h('span', { class: 'sn' }, t === 'Cath' ? 'CAD' : t), value));
+      h('span', { class: 'sn' }, t === 'Cath' ? 'CAD' : t), value,
+      pts ? h('span', { class: `delta${fresh ? ' fresh' : ''}`, 'aria-hidden': 'true' }, `${pts > 0 ? '▲' : '▼'} ${Math.abs(pts)}`) : null));
   }
 }
 
 function renderAll() {
-  renderVesselStrip();
   renderSummary();
   const common = { prediction: state.prediction, performance: state.performance };
   if (state.tab === 'results') {
@@ -145,14 +130,19 @@ function showErrors(err) {
       const msg = String(d.msg || '').replace(/^Value error, /, '');
       if (!(typeof key === 'string' && key !== 'body' && form.showFieldError(key, msg))) general.push(msg);
     }
+  } else if (err.status === 429) {
+    general.push('Too many updates in a short time. The estimate will refresh with your next change in a few seconds.');
+  } else if (err.status >= 500) {
+    general.push(`The prediction service hit an error${err.body?.request_id ? ` (reference ${err.body.request_id})` : ''}. Try again.`);
   } else {
-    general.push(err.status ? `The server rejected the request (${err.status}).` : 'Cannot reach the prediction service. Is the API running?');
+    general.push(err.status ? (typeof detail === 'string' ? detail : `The server rejected the request (${err.status}).`) : 'Cannot reach the prediction service. Is the API running?');
   }
   box.hidden = general.length === 0;
   clear(box).append(...general.map(m => h('div', {}, m)));
 }
 
-async function runPrediction() {
+// `compare`: a manual edit, so the summary shows how far each estimate moved (not after loading an example).
+async function runPrediction(compare = false) {
   const missing = form.missing();
   if (missing.length) {
     showErrors(null);
@@ -164,7 +154,12 @@ async function runPrediction() {
   setLoading(true);
   try {
     const pred = await api.predict(form.payload(), inflight.signal);
+    const prev = state.prediction;
+    const probs = r => ({ Cath: r.overall_cad.probability, LAD: r.vessels.LAD.probability, LCX: r.vessels.LCX.probability, RCA: r.vessels.RCA.probability });
+    if (!compare || !prev) state.deltas = null;
+    else { const a = probs(prev), b = probs(pred); state.deltas = Object.fromEntries(Object.keys(b).map(k => [k, b[k] - a[k]])); }
     state.prediction = pred;
+    state.deltaFresh = true;
     showErrors(null);
     if (scene) {
       scene.setProbabilities({ LAD: pred.vessels.LAD.probability, LCX: pred.vessels.LCX.probability, RCA: pred.vessels.RCA.probability });
@@ -181,7 +176,7 @@ async function runPrediction() {
 
 function schedulePrediction() {
   clearTimeout(debounce);
-  debounce = setTimeout(runPrediction, 300);
+  debounce = setTimeout(() => runPrediction(true), 300);
 }
 
 const form = new PatientForm($('patient-form'), schedulePrediction, $('form-tools'));
@@ -215,8 +210,9 @@ async function initScene() {
       scene.setProbabilities({ LAD: v.LAD.probability, LCX: v.LCX.probability, RCA: v.RCA.probability }, false);
     }
   } catch (e) {
+    if (window.depsFailed?.(e)) return;   // CDN module failed: the page reloads with the local copies
     console.error(e);
-    $('viewer-loading').textContent = '3D viewer unavailable (WebGL or the Three.js CDN could not be loaded). All results remain available in the panels.';
+    $('viewer-loading').textContent = '3D viewer unavailable (WebGL could not start). All results remain available in the panels.';
   }
 }
 
@@ -247,6 +243,15 @@ function toggleKeys(force) {
   $('keys-btn').setAttribute('aria-expanded', String(open));
 }
 $('keys-btn').addEventListener('click', () => toggleKeys());
+
+// Heartbeat sound follows the 3D heartbeat (rate = the entered pulse), so turning it on also starts the heartbeat.
+const sound = new HeartbeatSound(() => scene?.beatClock() ?? null);
+const soundCtl = soundButton($('sound-btn'), sound, {
+  onEnable: () => {
+    const beat = $('toggle-beat');
+    if (!beat.checked) { beat.checked = true; beat.dispatchEvent(new Event('change')); }
+  },
+});
 document.addEventListener('keydown', e => {
   const t = e.target;
   if (e.ctrlKey || e.metaKey || e.altKey || t.isContentEditable || ['INPUT', 'SELECT', 'TEXTAREA'].includes(t.tagName)) {
@@ -257,6 +262,7 @@ document.addEventListener('keydown', e => {
   if (targets[e.key]) { select(targets[e.key]); e.preventDefault(); }
   else if (e.key === 'v' || e.key === 'V') { const i = VIEWS.findIndex(v => v.id === currentView); showView(VIEWS[(i + 1) % VIEWS.length].id); }
   else if (e.key === 'f' || e.key === 'F') setStageMode(!document.body.classList.contains('stage-mode'));
+  else if (e.key === 's' || e.key === 'S') soundCtl.toggle();
   else if (e.key === '/') { e.preventDefault(); setStageMode(false); form.searchEl?.focus(); }
   else if (e.key === '?') toggleKeys();
   else if (e.key === 'Escape') { toggleKeys(false); if (document.body.classList.contains('stage-mode')) setStageMode(false); else select('Cath'); }
@@ -284,18 +290,19 @@ $('reset-btn').addEventListener('click', () => {
 async function boot() {
   initMotion();
   renderLegend();
-  renderVesselStrip();   // placeholders now, so the layout does not shift when estimates arrive
   renderSummary();
-  const start = () => (window.requestIdleCallback ? requestIdleCallback(() => initScene(), { timeout: 1200 }) : setTimeout(initScene, 150));
-  if (document.readyState === 'complete') start(); else window.addEventListener('load', start, { once: true });
+  let started = false;
+  const start = () => !started && (started = true) && (window.requestIdleCallback ? requestIdleCallback(() => initScene(), { timeout: 1200 }) : setTimeout(initScene, 150));
+  if (document.readyState === 'complete') start();
+  else { window.addEventListener('load', start, { once: true }); setTimeout(start, 2500); }   // never wait on a slow third party
   const status = $('api-status');
   try {
-    const health = await api.health();
-    status.textContent = `API ready · model v${health.model_version}`;
-    status.className = 'api-status ok';
+    await api.health();
+    status.hidden = true;
   } catch {
-    status.textContent = 'API unreachable';
+    status.textContent = 'Model service unreachable';
     status.className = 'api-status err';
+    status.hidden = false;
   }
   const [perf, gi, ex, oc] = await Promise.allSettled([api.performance(), api.globalImportance(), api.examples(), api.operatingCurves()]);
   if (perf.status === 'fulfilled') state.performance = perf.value;

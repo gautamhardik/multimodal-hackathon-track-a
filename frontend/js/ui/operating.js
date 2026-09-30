@@ -130,11 +130,14 @@ export function operatingSection({ curves, target, patientP, getThr, setThr, onT
     type: 'range', min: '0.01', max: '0.99', step: '0.01', class: 'op-slider',
     'aria-label': `Decision threshold for ${TARGET_NAMES[target]}`,
   });
-  const presetBtns = PRESET_ORDER.filter(k => d.presets[k]).map(k => h('button', {
+  // A preset that lands within a point of the served default is the same rule in practice: show it once, on the default.
+  const twin = d.presets.default && PRESET_ORDER.slice(1).find(k => d.presets[k] && Math.abs(d.presets[k].threshold - d.presets.default.threshold) < 0.01);
+  const presetBtns = PRESET_ORDER.filter(k => d.presets[k] && k !== twin).map(k => h('button', {
     type: 'button', dataset: { preset: k },
-    title: k === 'default' ? `Served v1.1 rule: ${d.default_rule}` : curves.preset_rules[k].rule,
+    title: k === 'default' ? `Served v1.1 rule: ${d.default_rule}${twin ? `; matches “${curves.preset_rules[twin].rule}”` : ''}` : curves.preset_rules[k].rule,
     onclick: () => apply(d.presets[k].threshold),
-  }, presetLabel(curves, k), h('span', { class: 'op-pthr' }, ` ${pct(d.presets[k].threshold)}`)));
+  }, k === 'default' && twin ? `${presetLabel(curves, k)} · ${presetLabel(curves, twin)}` : presetLabel(curves, k),
+  h('span', { class: 'op-pthr' }, ` ${pct(d.presets[k].threshold)}`)));
 
   const chart = tradeoffChart({ ...d, key: target }, getThr, patientP, t => apply(t));
 
@@ -144,7 +147,8 @@ export function operatingSection({ curves, target, patientP, getThr, setThr, onT
     slider.value = String(t);
     slider.setAttribute('aria-valuetext', pct(t));
     valueEl.textContent = pct(t, t * 100 % 1 ? 1 : 0);
-    const active = presetName(curves, target, t);
+    const hit = presetName(curves, target, t);
+    const active = hit === twin ? 'default' : hit;
     for (const b of presetBtns) b.setAttribute('aria-pressed', String(b.dataset.preset === active));
     chart.update();
     clear(stats).append(
@@ -168,7 +172,7 @@ export function operatingSection({ curves, target, patientP, getThr, setThr, onT
     h('p', { class: 'small muted' },
       `Choose where the ${TARGET_NAMES[target]} flag is raised. Lower thresholds catch more cases and raise more false alarms. `,
       'Only the flag changes; the probability, 3D colours and explanations stay the same.'),
-    h('div', { class: 'seg op-presets', role: 'group', 'aria-label': 'Preset operating points' }, presetBtns),
+    h('div', { class: `seg op-presets${presetBtns.length === 3 ? ' three' : ''}`, role: 'group', 'aria-label': 'Preset operating points' }, presetBtns),
     h('div', { class: 'op-slider-row' }, slider, valueEl),
     chart,
     h('div', { class: 'chart-legend', 'aria-hidden': 'true' },

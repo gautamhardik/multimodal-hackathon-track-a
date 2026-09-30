@@ -16,6 +16,14 @@ def _logit(p: np.ndarray) -> np.ndarray:
     return np.log(p / (1 - p))
 
 
+def _single_threaded(pipeline):
+    """Score one patient per request on one thread. With n_jobs=-1 every call starts and tears down a worker pool,
+    which costs ~1 s per request on a single row. Runtime setting only: the fitted trees and outputs are unchanged."""
+    params = pipeline.get_params(deep=True)
+    pipeline.set_params(**{k: 1 for k, v in params.items() if k.endswith("n_jobs") and v not in (None, 1)})
+    return pipeline
+
+
 class ModelRegistry:
     """Loads the frozen v1 pipelines and the v1.1 development-only post-processing (calibration + thresholds)."""
 
@@ -47,7 +55,7 @@ class ModelRegistry:
             expected = self.postprocessing["targets"][target]["pipeline_sha256"]
             if digest != expected:
                 raise RuntimeError(f"{target} pipeline hash {digest[:12]} does not match the calibrated artifact ({expected[:12]})")
-            self.pipelines[target] = joblib.load(path)
+            self.pipelines[target] = _single_threaded(joblib.load(path))
             logger.info(f"Loaded {target} pipeline ({digest[:12]})")
 
         self.is_loaded = True
