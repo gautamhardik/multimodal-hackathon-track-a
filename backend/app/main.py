@@ -5,6 +5,7 @@ from contextlib import asynccontextmanager
 import pandas as pd
 from fastapi import FastAPI, HTTPException, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.gzip import GZipMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from .config import (COLOR_BANDS_PATH, DISCLAIMER, FRONTEND_DIR, GLOBAL_IMPORTANCE_PATH, HOLDOUT_CI_PATH, MANIFEST_PATH,
@@ -50,11 +51,14 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+app.add_middleware(GZipMiddleware, minimum_size=1024)
+
+
 @app.middleware("http")
 async def revalidate_static(request, call_next):
     """Make browsers revalidate frontend files (ETag) so an updated UI is never served stale from cache."""
     response = await call_next(request)
-    if request.method == "GET" and request.url.path.split("/")[1] in ("", "index.html", "js", "css"):
+    if request.method == "GET" and request.url.path.split("/")[1] in ("", "index.html", "app.html", "js", "css", "assets"):
         response.headers["Cache-Control"] = "no-cache"
     return response
 

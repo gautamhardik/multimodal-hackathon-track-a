@@ -1,5 +1,5 @@
 import { LABELS, formatValue, outOfReference, REFS, UNITS } from '../config/features.js';
-import { h, icon, clear, showTooltip, hideTooltip } from './dom.js';
+import { h, icon, clear, showTooltip, hideTooltip, skeleton } from './dom.js';
 
 const TARGET_NAMES = { Cath: 'Overall CAD', LAD: 'LAD', LCX: 'LCX', RCA: 'RCA' };
 const UNIT_TEXT = { 'log-odds': 'log-odds', probability: 'probability points' };
@@ -25,6 +25,8 @@ function divergingChart(contribs, units) {
       h('div', { class: 's' }, `${raise ? 'Raises' : 'Lowers'} the estimate · SHAP ${c.attribution > 0 ? '+' : ''}${c.attribution.toFixed(3)} ${UNIT_TEXT[units] || units}`),
       h('div', { class: 's' }, `Domain: ${c.clinical_domain}`)];
     row.addEventListener('pointermove', e => showTooltip(e, tipBuild));
+    row.addEventListener('pointerenter', () => document.dispatchEvent(new CustomEvent('feature-hover', { detail: c.feature })));
+    row.addEventListener('focus', () => document.dispatchEvent(new CustomEvent('feature-hover', { detail: c.feature })));
     row.addEventListener('pointerleave', hideTooltip);
     row.addEventListener('focus', e => showTooltip(e, tipBuild));
     row.addEventListener('blur', hideTooltip);
@@ -94,7 +96,7 @@ function breakdownTable(contribs, rerender) {
 
 export function renderExplain(el, { prediction, target, onTarget }) {
   clear(el);
-  if (!prediction) { el.append(h('p', { class: 'muted' }, 'No prediction yet.')); return; }
+  if (!prediction) { el.append(skeleton('Waiting for the first explanation')); return; }
   const exp = prediction.explanations[target];
   const rerender = () => renderExplain(el, { prediction, target, onTarget });
   const prob = target === 'Cath' ? prediction.overall_cad.probability : prediction.vessels[target].probability;

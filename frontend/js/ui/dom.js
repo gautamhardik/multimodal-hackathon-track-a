@@ -52,3 +52,13 @@ export function showTooltip(evt, build) {
   t.style.top = `${Math.max(8, y - th - 10)}px`;
 }
 export function hideTooltip() { tip().hidden = true; }
+
+/** Layout-shaped placeholder shown while data loads (no spinner). */
+export function skeleton(label = 'Loading…') {
+  const bar = (w, hgt = 12) => h('div', { class: 'sk', style: { width: w, height: `${hgt}px` } });
+  return h('div', { class: 'skeleton', role: 'status', 'aria-busy': 'true', 'aria-label': label },
+    bar('45%', 11), bar('38%', 54), bar('100%', 8), bar('70%', 11),
+    h('div', { class: 'sk-card' }, bar('55%', 12), bar('100%', 8)),
+    h('div', { class: 'sk-card' }, bar('50%', 12), bar('100%', 8)),
+    h('div', { class: 'sk-card' }, bar('60%', 12), bar('100%', 8)));
+}

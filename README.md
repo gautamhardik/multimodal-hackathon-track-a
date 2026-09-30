@@ -6,7 +6,7 @@ vessel-specific probabilities with exact SHAP explanations, visualised on an int
 
 > **Decision support / education only.** Not a medical device, and not a substitute for clinical assessment or diagnostic imaging.
 
-**Status:** the ML pipeline (Notebooks 1–7), inference API, 3D viewer and clinical dashboard are complete. The written report and demo video are not part of this repository.
+**Status:** the ML pipeline (Notebooks 1–8), inference API, landing page, anatomical 3D viewer and clinical dashboard are complete. The written report and demo video are not part of this repository.
 
 ## Repository layout
 
@@ -21,7 +21,9 @@ vessel-specific probabilities with exact SHAP explanations, visualised on an int
 | `08_Operating_Points.ipynb` | **Development-only** sensitivity/specificity trade-off of the served models at every threshold, with pre-declared presets |
 | `ml/dev_search.py` | Library behind Notebook 7 (never loads holdout rows) |
 | `backend/` | FastAPI inference service + tests; also serves the web app |
-| `frontend/` | Web app: Three.js 3D heart and coronary tree + clinical dashboard (no build step) |
+| `frontend/` | Web app, no build step: `index.html` scroll-story landing page, `app.html` 3D explorer + clinical dashboard |
+| `frontend/assets/anatomy/` | `heart.glb`, `thorax.glb`: anatomical meshes derived from BodyParts3D (CC BY 4.0) |
+| `tools/build_anatomy.py` | Rebuilds the `.glb` files from BodyParts3D (fetches only the ~7 MB of parts it needs) |
 | `artifacts/` | Frozen pipelines, SHAP artifacts, evaluation tables, v1.1 post-processing, figures |
 
 ## Quick start
@@ -38,7 +40,7 @@ Re-run the notebooks in order (1 → 7). Notebook 6 checks that its replay repro
 jupyter nbconvert --to notebook --execute --inplace 07_Development_Only_Improvements.ipynb
 ```
 
-Start the web app and API together from the repository root, then open http://localhost:8000:
+Start the web app and API together from the repository root, then open http://localhost:8000 (overview) or http://localhost:8000/app.html (explorer):
 
 ```bash
 uvicorn backend.app.main:app --port 8000
@@ -130,32 +132,77 @@ Notebook 8 reproduces the v1.1 fold AUCs of Notebook 7 exactly before computing 
 
 ## Web app: 3D visualisation and clinical dashboard
 
+**Landing page** (`/`): a scroll story around the same 3D heart, built with GSAP ScrollTrigger.
+- **Hero:** an ECG trace and heartbeat running at the example patient's pulse rate, and a readout of that patient's estimates. A **Try it** control changes chest pain type and ejection fraction and re-runs the real model live, recolouring the heart and updating the explanation.
+- **Anatomy (scroll-scrubbed):** each third of the section traces one artery from its ostium outwards, turns the heart towards it and dims the others. The animation follows the scrollbar, so scrolling back reverses it. Each card shows the artery's course, territory, example estimate and holdout ROC-AUC.
+- **Method and explanations:** the method timeline, and the example patient's real SHAP explanation.
+- **Evidence:** the overall CAD ROC-AUC, and one confidence-interval chart placing all four models on a shared 0.5–1.0 scale.
+- **Hand-off:** "Open the explorer" morphs the heart stage into the explorer's viewer, using cross-document view transitions (Chrome and Edge; other browsers navigate normally).
+- **Data:** every number on the page comes from the API. Nothing is hard-coded.
+
 **3D view** (Three.js / WebGL, runs on integrated graphics):
-- An anatomically oriented heart shows the atria, auricles, aorta, pulmonary trunk and venae cavae, with the coronary tree in its grooves:
-  - LAD with diagonals in the anterior interventricular groove;
-  - LCX with obtuse marginals in the left atrioventricular groove;
-  - RCA with acute marginal and PDA in the right atrioventricular groove (right-dominant pattern).
+- **Real anatomy:** the heart, great vessels and coronary arteries are meshes from **BodyParts3D**, a whole-body anatomical database based on the FMA ontology. Each model target maps to its own mesh group:
+  - **LAD:** anterior interventricular branch, with its diagonal, conus and right anterior branches;
+  - **LCX:** circumflex branch;
+  - **RCA:** trunk, anterior/posterior ventricular and marginal branches, and the posterior interventricular branch.
+- **Reconstructed muscle surface:** BodyParts3D models the ventricles only as blood cavities. The outer muscle surface was therefore reconstructed by growing each cavity by the local wall thickness, measured from how far the coronary arteries lie from it (typical 9 mm left-ventricle / 4.5 mm right-ventricle values elsewhere). The arteries end up a median 0.9 mm from the reconstructed surface.
+- **Chest view:** loads the real ribs, costal cartilages, sternum and thoracic spine (`thorax.glb`, loaded only when needed), with the heart in its true position.
+- **Fallback:** if the model files are missing, the viewer uses the procedural schematic heart.
 - Each vessel system is coloured by its **calibrated** probability on one fixed 0–100% scale, with a numeric legend.
   - The whole system shares one colour, because the model predicts stenosis *somewhere in the vessel*, not a lesion location.
   - The left main and great vessels stay grey ("not modelled").
 - **Interaction:**
   - rotate, zoom and pan;
-  - camera presets (anterior, left lateral, inferior, RAO, posterior, and a chest view inside an X-ray-style torso with ribs);
+  - camera presets (anterior, left lateral, inferior, RAO, posterior, and a chest view with the real skeleton);
   - hover and click to select a vessel system;
   - optional labels and a heartbeat synchronised to the entered pulse rate.
-- Colours animate whenever a prediction changes.
+- **Effects** (custom shaders; no post-processing passes):
+  - **Blood flow:** pulses travel from each ostium outwards, one per heartbeat.
+  - **Risk glow:** arteries glow and gain a halo in proportion to their calibrated probability, so low estimates stay matte.
+  - **Prediction wave:** a ring of light sweeps each artery whenever a new prediction arrives.
+  - **Muscle surface:** soft sheen and a warm edge light.
+- **Focus mode:** selecting an artery turns the camera to it and moves in, dims the other arteries, and expands its label with the territory it supplies. Double-clicking empty space clears the selection.
+- **Full-screen 3D:** press **F**, or use the toolbar button, to hide the side panels.
+- **Keyboard:** **1–4** select a target, **V** cycles views, **/** finds a measurement, **Esc** clears, **?** lists the shortcuts.
+- Colours ease to their new values whenever a prediction changes.
 - The ramp's OKLab lightness decreases monotonically, so order survives colour-vision deficiency. Every vessel carries a dark outline so pale (low-probability) vessels stay visible.
 
 **Dashboard:**
 - **Patient inputs:** grouped inputs with units. BMI and obesity are derived, and chest-pain classes use a single control. Example patients come from the development cohort, with outcomes never shown. Predictions update live, with validation messages next to each field.
-- **Results:** the overall CAD estimate, the vessel estimates with operating-threshold markers, the model discrimination per vessel, a Cath/vessel consistency warning, and out-of-range input warnings. A **Decision threshold** panel offers presets, a slider and a sensitivity/specificity chart marking the current patient. It shows development sensitivity, specificity, PPV and NPV at the chosen threshold, and the flags update live. Only the flag changes: probabilities, 3D colours and explanations do not depend on the threshold. Choices are remembered per browser.
-- **Why this estimate?:** a diverging SHAP chart (raises vs lowers), contribution by clinical domain, and a sortable physiological breakdown. The breakdown shows each measurement's value, typical adult range and share of the attribution.
+- **Navigation:** the inputs panel has a search box and section chips, which show counts of findings present or out of range. One section is open at a time. The results panel pins a summary strip (CAD · LAD · LCX · RCA, with flagged estimates ringed) above its tabs: Results / Threshold / Explain / Evidence.
+- **Results:** the overall CAD estimate, the vessel estimates with operating-threshold markers, the model discrimination per vessel, a Cath/vessel consistency warning, and out-of-range input warnings.
+- **Threshold:** presets, a slider and a sensitivity/specificity chart marking the current patient. It shows development sensitivity, specificity, PPV and NPV at the chosen threshold, and the flags update live. Only the flag changes: probabilities, 3D colours and explanations do not depend on the threshold. Choices are remembered per browser.
+- **Explain:** hovering a measurement highlights its input field (or its section chip when that section is closed). The tab shows a diverging SHAP chart (raises vs lowers), contribution by clinical domain, and a sortable physiological breakdown. The breakdown shows each measurement's value, typical adult range and share of the attribution.
 - **Model evidence:** holdout metrics with 95% CIs, development metrics for the served v1.1, observed stenosis rate per colour band, and global feature importance.
-- A clinical-safety disclaimer is always visible, and the canvas states that it shows model output on a schematic, not an image of the patient.
+- A clinical-safety disclaimer is always visible, and the canvas states that it shows model output on reference anatomy, not an image of the patient.
 
-**Extending it:** vessel paths, branches and camera views are data in `frontend/js/config/anatomy.js`, and input fields are data in `frontend/js/config/features.js`. Adding a vessel system or clinical feature needs no changes to the rendering code.
+**Extending it:**
+- **New vessel system:** in `tools/build_anatomy.py`, add a group of FMA concepts; the viewer picks up any `vessel_<TARGET>` mesh automatically.
+- **Camera views:** data in `frontend/js/config/anatomy.js`.
+- **Input fields:** data in `frontend/js/config/features.js`.
 
-**Requirement:** the page loads Three.js 0.170 from the jsDelivr CDN, so the browser needs internet access. The anatomy is procedural, so no mesh files are needed.
+**Rebuilding the anatomy:** run the command below. It downloads only the needed parts (about 7 MB, using range requests into the official archive) and rebuilds both `.glb` files in about 3 minutes. It needs `scipy` and `scikit-image`.
+
+```bash
+python tools/build_anatomy.py
+```
+
+**Anatomy licence:** "BodyParts3D, © The Database Center for Life Science, licensed under CC Attribution 4.0 International", per the archive's licence page (updated 2025-02-27).
+- The meshes here are cropped, simplified, regrouped and recoloured.
+- The ventricular surface is reconstructed as described above.
+- Older OBJ file headers still cite CC BY-SA 2.1 Japan.
+- The credit appears in the page footer and inside the `.glb` metadata.
+
+**Requirements:**
+- The pages load Three.js 0.170, GSAP 3.15 (with ScrollTrigger) and the Geist and Instrument Serif fonts from CDNs, so the browser needs internet access.
+- The anatomy is served locally from `frontend/assets/anatomy/`.
+
+**Performance and accessibility checks:**
+- **Rendering cost:** measured on integrated Intel Arc graphics with every effect on: 1.7 ms per frame for the explorer (2400×1600) and 0.35 ms for the landing scene (2880×1800), far inside the 60 fps budget of 16.7 ms.
+- **Contrast:** every text colour passes WCAG AA (4.5:1) against its background in both themes.
+- **Reduced motion:** every animation has a static equivalent.
+
+**Motion (GSAP):** values count up, meters grow, and threshold markers glide to their new positions. The final value is always written first and animation only interpolates towards it. Motion is skipped when the OS asks for reduced motion, when the page is hidden, or when GSAP cannot load; the dashboard then works exactly the same without animation.
 
 ## What the probabilities mean
 
@@ -204,3 +251,4 @@ Notebook 8 reproduces the v1.1 fold AUCs of Notebook 7 exactly before computing 
 - **Spectrum bias:** Q waves, regional wall-motion abnormality and reduced EF can reflect prior infarction, i.e. already-established disease.
 - **Stratification:** the split was stratified on `Cath` only, so vessel prevalence differs between development and holdout.
 - **Coverage:** left main disease is not modelled separately.
+- **Reference anatomy:** the 3D heart is one reference anatomy (right-dominant), not the patient's. Its ventricular surface is reconstructed, not scanned.

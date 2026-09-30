@@ -2,12 +2,12 @@
 // `ref` = approximate typical adult reference range, shown only as context next to the model's attributions.
 
 export const GROUPS = [
-  { id: 'demo', title: 'Demographics & body size', open: true },
-  { id: 'history', title: 'History & risk factors', open: true },
-  { id: 'symptoms', title: 'Symptoms & examination', open: true },
-  { id: 'ecg', title: 'ECG', open: false },
-  { id: 'labs', title: 'Laboratory', open: false },
-  { id: 'echo', title: 'Echocardiography', open: true },
+  { id: 'demo', title: 'Demographics & body size', short: 'Body', open: true },
+  { id: 'history', title: 'History & risk factors', short: 'History' },
+  { id: 'symptoms', title: 'Symptoms & examination', short: 'Symptoms' },
+  { id: 'ecg', title: 'ECG', short: 'ECG' },
+  { id: 'labs', title: 'Laboratory', short: 'Labs' },
+  { id: 'echo', title: 'Echocardiography', short: 'Echo' },
 ];
 
 const yn = (key, label, group) => ({ key, label, group, type: 'yn' });

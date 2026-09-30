@@ -1,4 +1,4 @@
-import { FIELDS, GROUPS, CHEST_PAIN } from '../config/features.js';
+import { FIELDS, GROUPS, CHEST_PAIN, outOfReference } from '../config/features.js';
 import { h, clear } from './dom.js';
 
 // Typical values used when the form is reset (not a real patient).
@@ -12,12 +12,25 @@ export const DEFAULT_PATIENT = {
   PLT: 210, 'EF-TTE': 50, 'Region RWMA': 0, VHD: 'N',
 };
 
+// A finding "counts" in a section badge when it is present (yes/abnormal) or outside the typical adult range.
+function isFlagged(f, v) {
+  if (f.type === 'b01') return v === 1;
+  if (f.type === 'yn') return v === 'Y';
+  if (f.type === 'num') return outOfReference(f.key, v) !== null;
+  if (f.key === 'Function Class' || f.key === 'Region RWMA') return Number(v) > 0;
+  if (f.key === 'BBB' || f.key === 'VHD') return v !== 'N';
+  return false;
+}
+
 export class PatientForm {
-  constructor(formEl, onChange) {
+  constructor(formEl, onChange, toolsEl = null) {
     this.formEl = formEl;
+    this.toolsEl = toolsEl;
     this.onChange = onChange;
     this.values = { ...DEFAULT_PATIENT };
     this.controls = {};
+    this.groups = {};
+    this.query = '';
     this._render();
   }
 
@@ -26,14 +39,76 @@ export class PatientForm {
     for (const g of GROUPS) {
       const fields = FIELDS.filter(f => f.group === g.id);
       const grid = h('div', { class: 'fields' }, fields.map(f => this._field(f)));
-      this.formEl.append(h('details', { class: 'group', open: g.open }, h('summary', {}, g.title), grid));
+      const count = h('span', { class: 'group-count' });
+      const details = h('details', { class: 'group', open: g.open, dataset: { group: g.id } },
+        h('summary', {}, h('span', {}, g.title), count), grid);
+      // Accordion: opening one section closes the others (not while searching, when all matches are shown).
+      details.addEventListener('toggle', () => {
+        if (details.open && !this.query) for (const o of Object.values(this.groups)) if (o.details !== details) o.details.open = false;
+        this._refreshNav();
+      });
+      this.groups[g.id] = { details, count, fields };
+      this.formEl.append(details);
+    }
+    if (this.toolsEl) this._renderTools();
+  }
+
+  _renderTools() {
+    const search = h('input', { type: 'search', class: 'form-search', placeholder: 'Find a measurement…', 'aria-label': 'Find a measurement' });
+    search.addEventListener('input', () => this.filter(search.value));
+    this.chips = GROUPS.map(g => h('button', {
+      type: 'button', class: 'nav-chip', dataset: { group: g.id }, onclick: () => { search.value = ''; this.filter(''); this.openGroup(g.id); },
+    }, g.short, h('span', { class: 'chip-count' })));
+    clear(this.toolsEl).append(
+      h('div', { class: 'search-wrap' }, search),
+      h('div', { class: 'nav-chips', role: 'group', 'aria-label': 'Jump to section' }, this.chips));
+    this.searchEl = search;
+  }
+
+  openGroup(id) {
+    const g = this.groups[id];
+    if (!g) return;
+    g.details.open = true;
+    g.details.scrollIntoView({ block: 'start', behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+  }
+
+  filter(q) {
+    this.query = q.trim().toLowerCase();
+    for (const { details, fields } of Object.values(this.groups)) {
+      let any = false;
+      for (const f of fields) {
+        const el = details.querySelector(`.field[data-key="${CSS.escape(f.key)}"]`);
+        const hit = !this.query || `${f.label} ${f.key} ${f.unit || ''}`.toLowerCase().includes(this.query);
+        el.hidden = !hit;
+        any ||= hit;
+      }
+      details.hidden = !any;
+      if (this.query) details.open = any;
+    }
+    if (!this.query) {
+      const openOnes = Object.values(this.groups).filter(g => g.details.open);
+      openOnes.slice(1).forEach(g => { g.details.open = false; });
+    }
+    this._refreshNav();
+  }
+
+  _refreshNav() {
+    for (const [id, g] of Object.entries(this.groups)) {
+      const n = g.fields.filter(f => f.type === 'chestpain' ? this.values['Typical Chest Pain'] === 1 || this.values.Atypical === 'Y' || this.values.Nonanginal === 'Y' : isFlagged(f, this.values[f.key])).length;
+      g.count.textContent = n ? `${n} flagged` : '';
+      const chip = this.chips?.find(c => c.dataset.group === id);
+      if (chip) {
+        chip.querySelector('.chip-count').textContent = n ? String(n) : '';
+        chip.setAttribute('aria-pressed', String(g.details.open && !this.query));
+        chip.title = n ? `${n} finding${n > 1 ? 's' : ''} present or outside the typical range` : '';
+      }
     }
   }
 
   _field(f) {
     const id = `f-${f.key.replace(/[^a-z0-9]/gi, '_')}`;
     const wrap = h('div', { class: `field${f.wide ? ' wide' : ''}`, dataset: { key: f.key } });
-    const emit = () => { this._refreshDerived(); this.onChange(this.payload()); };
+    const emit = () => { this._refreshDerived(); this._refreshNav(); this.onChange(this.payload()); };
 
     if (f.type === 'num') {
       const input = h('input', { id, class: 'num', type: 'number', min: f.min, max: f.max, step: f.step, inputmode: 'decimal' });
@@ -89,6 +164,7 @@ export class PatientForm {
     }
     for (const [k, c] of Object.entries(this.controls)) if (c.set) c.set(this.values[k]);
     this._refreshDerived();
+    this._refreshNav();
     this.clearErrors();
   }
 
@@ -100,6 +176,20 @@ export class PatientForm {
     }
     for (const k of ['Typical Chest Pain', 'Atypical', 'Nonanginal']) out[k] = this.values[k];
     return out;
+  }
+
+  /** Briefly highlight the input behind a feature (or its section chip when that section is closed). */
+  highlight(key) {
+    const k = ['Typical Chest Pain', 'Atypical', 'Nonanginal'].includes(key) ? 'chestPain' : key;
+    const field = this.formEl.querySelector(`.field[data-key="${CSS.escape(k)}"]`);
+    if (!field) return;
+    const g = field.closest('details');
+    const target = g.open && !field.hidden ? field : this.chips?.find(c => c.dataset.group === g.dataset.group);
+    if (!target) return;
+    target.classList.remove('hl');
+    void target.offsetWidth;   // restart the animation
+    target.classList.add('hl');
+    if (target === field) field.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 
   missing() { return Object.entries(this.payload()).filter(([, v]) => v === null || v === undefined || Number.isNaN(v)).map(([k]) => k); }
@@ -114,6 +204,8 @@ export class PatientForm {
     if (!field) return false;
     field.classList.add('invalid');
     field.querySelector('.err').textContent = msg;
+    field.hidden = false;
+    field.closest('details').hidden = false;
     field.closest('details').open = true;
     return true;
   }

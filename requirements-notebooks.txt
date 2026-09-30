@@ -9,3 +9,4 @@ nbformat==5.10.4
 nbconvert==7.16.6
 ipykernel==6.31.0
 tabpfn==9.0.0  # optional: ml/tabpfn_eval.py only (v2 weights download without a login)
+scikit-image==0.25.2  # tools/build_anatomy.py only (marching cubes for the reconstructed ventricles)

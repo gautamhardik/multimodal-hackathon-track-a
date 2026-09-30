@@ -3,6 +3,7 @@
 // Only the flag depends on the threshold; probabilities, 3D colours and explanations never change.
 import { h, clear, showTooltip, hideTooltip } from './dom.js';
 import { pct } from './colors.js';
+import { attrTo, countUp } from './motion.js';
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 export const PRESET_ORDER = ['default', 'high_sensitivity', 'balanced', 'high_specificity'];
@@ -61,8 +62,8 @@ function tradeoffChart(d, getThr, patientP, onPick) {
   const thrText = s('text', { y: T - 7, class: 'op-thr-lbl', 'text-anchor': 'middle' });
   const placeThr = () => {
     const t = getThr();
-    thrLine.setAttribute('x1', x(t)); thrLine.setAttribute('x2', x(t));
-    thrText.setAttribute('x', Math.min(W - R - 20, Math.max(L + 20, x(t))));
+    attrTo(thrLine, `op-line-${d.key}`, { x1: x(t), x2: x(t) });
+    attrTo(thrText, `op-text-${d.key}`, { x: Math.min(W - R - 20, Math.max(L + 20, x(t))) });
     thrText.textContent = `threshold ${pct(t)}`;
   };
   placeThr();
@@ -108,11 +109,10 @@ function tradeoffChart(d, getThr, patientP, onPick) {
   return svg;
 }
 
-function statTile(label, value, sub) {
-  return h('div', { class: 'op-stat' },
-    h('div', { class: 'k' }, label),
-    h('div', { class: 'v' }, value == null ? '—' : pct(value)),
-    h('div', { class: 's' }, sub));
+function statTile(key, label, value, sub) {
+  const v = h('div', { class: 'v' });
+  if (value == null) v.textContent = '—'; else countUp(v, key, value, x => pct(x));
+  return h('div', { class: 'op-stat' }, h('div', { class: 'k' }, label), v, h('div', { class: 's' }, sub));
 }
 
 /**
@@ -136,7 +136,7 @@ export function operatingSection({ curves, target, patientP, getThr, setThr, onT
     onclick: () => apply(d.presets[k].threshold),
   }, presetLabel(curves, k), h('span', { class: 'op-pthr' }, ` ${pct(d.presets[k].threshold)}`)));
 
-  const chart = tradeoffChart(d, getThr, patientP, t => apply(t));
+  const chart = tradeoffChart({ ...d, key: target }, getThr, patientP, t => apply(t));
 
   function refresh() {
     const t = getThr();
@@ -148,10 +148,10 @@ export function operatingSection({ curves, target, patientP, getThr, setThr, onT
     for (const b of presetBtns) b.setAttribute('aria-pressed', String(b.dataset.preset === active));
     chart.update();
     clear(stats).append(
-      statTile('Sensitivity', m.sensitivity, `flags ${Math.round(m.sensitivity * 100)} of 100 patients with ${CONDITION[target]}`),
-      statTile('Specificity', m.specificity, `clears ${Math.round(m.specificity * 100)} of 100 patients without it`),
-      statTile('PPV', m.PPV, 'of flagged patients have it'),
-      statTile('NPV', m.NPV, 'of unflagged patients are free of it'));
+      statTile(`op-${target}-sens`, 'Sensitivity', m.sensitivity, `flags ${Math.round(m.sensitivity * 100)} of 100 patients with ${CONDITION[target]}`),
+      statTile(`op-${target}-spec`, 'Specificity', m.specificity, `clears ${Math.round(m.specificity * 100)} of 100 patients without it`),
+      statTile(`op-${target}-ppv`, 'PPV', m.PPV, 'of flagged patients have it'),
+      statTile(`op-${target}-npv`, 'NPV', m.NPV, 'of unflagged patients are free of it'));
     const range = m.sensitivity_range
       ? ` Across the 5 cross-validation repeats: sensitivity ${pct(m.sensitivity_range[0])}–${pct(m.sensitivity_range[1])}, specificity ${pct(m.specificity_range[0])}–${pct(m.specificity_range[1])}.`
       : '';

@@ -1,15 +1,16 @@
 import { SYSTEMS, SYSTEM_ORDER } from '../config/anatomy.js';
-import { h, icon, clear } from './dom.js';
+import { h, icon, clear, skeleton } from './dom.js';
 import { heatColor, pct } from './colors.js';
 import { operatingSection, presetName, presetLabel } from './operating.js';
+import { countUp, growWidth, moveTo } from './motion.js';
 
 // Elements that depend on the decision threshold carry data-target, so a threshold change updates them in place
 // (re-rendering the pane would interrupt a slider drag).
 function meter(target, p, label) {
+  const fill = h('div', { class: 'fill', style: { background: heatColor(p) } });
+  growWidth(fill, `meter-${target}`, p);
   return h('div', {},
-    h('div', { class: 'meter', role: 'img', dataset: { target, role: 'meter' } },
-      h('div', { class: 'fill', style: { width: pct(p, 1), background: heatColor(p) } }),
-      h('div', { class: 'thr' })),
+    h('div', { class: 'meter', role: 'img', dataset: { target, role: 'meter' } }, fill, h('div', { class: 'thr' })),
     h('div', { class: 'meter-scale' }, h('span', {}, '0%'), h('span', { dataset: { target, role: 'scale' } }), h('span', {}, '100%')));
 }
 
@@ -26,7 +27,7 @@ export function applyThreshold(root, { target, probability, thr, curves, label }
   for (const el of root.querySelectorAll(`[data-target="${target}"]`)) {
     const role = el.dataset.role;
     if (role === 'meter') {
-      el.querySelector('.thr').style.left = `calc(${pct(thr, 1)} - 1px)`;
+      moveTo(el.querySelector('.thr'), `thr-${target}`, 'left', Number((thr * 100).toFixed(2)));
       el.setAttribute('aria-label', `${label}: ${pct(probability)}; decision threshold ${pct(thr)}`);
     } else if (role === 'scale') {
       el.textContent = `threshold ${pct(thr)} (${note})`;
@@ -39,10 +40,16 @@ export function applyThreshold(root, { target, probability, thr, curves, label }
   }
 }
 
+function countEl(cls, key, value) {
+  const el = h(cls === 'value' ? 'div' : 'span', { class: cls });
+  countUp(el, key, value, x => pct(x));
+  return el;
+}
+
 export function renderResults(el, { prediction, performance, curves, selected, onSelect, getThreshold, setThreshold }) {
   clear(el);
   if (!prediction) {
-    el.append(h('p', { class: 'muted' }, 'Enter patient data to see model estimates.'));
+    el.append(skeleton('Waiting for the first estimate'));
     return;
   }
   const cad = prediction.overall_cad;
@@ -54,12 +61,12 @@ export function renderResults(el, { prediction, performance, curves, selected, o
       h('div', { class: 'hero' },
         h('div', {},
           h('div', { class: 'label' }, 'Overall CAD — estimated probability'),
-          h('div', { class: 'value' }, pct(cad.probability)))),
-      h('span', { class: 'flag', dataset: { target: 'Cath', role: 'flag' } }),
+          countEl('value', 'hero-Cath', cad.probability)),
+        h('span', { class: 'flag', dataset: { target: 'Cath', role: 'flag' } })),
       meter('Cath', cad.probability, LABEL.Cath),
       h('p', { class: 'small muted' },
-        `Default Cath threshold ${pct(cad.operating_threshold, 1)} keeps development sensitivity ≥ 90% (rule-out safety); change it under Decision threshold. `,
-        `Uncalibrated model output: ${cad.uncalibrated_probability.toFixed(2)}.`)));
+        `Default threshold keeps development sensitivity ≥ 90% (rule-out safety); adjust it in the Threshold tab. `,
+        `Uncalibrated output ${cad.uncalibrated_probability.toFixed(2)}.`)));
 
   if (!prediction.consistency.consistent) {
     el.append(h('div', { class: 'notice warn', role: 'status' }, icon('warn'), h('div', {}, h('strong', {}, 'Check consistency. '), prediction.consistency.message)));
@@ -79,26 +86,30 @@ export function renderResults(el, { prediction, performance, curves, selected, o
     },
       h('div', { class: 'row' },
         h('span', { class: 'nm' }, sys), h('span', { class: 'full' }, SYSTEMS[sys].name),
-        h('span', { class: 'pr' }, pct(v.probability))),
+        countEl('pr', `card-${sys}`, v.probability)),
       meter(sys, v.probability, LABEL[sys]),
       h('div', { class: 'row small' },
         h('span', { class: 'muted', dataset: { target: sys, role: 'vflag' } }),
-        auc ? h('span', { class: 'badge', style: { marginLeft: 'auto' }, title: `Holdout ROC-AUC ${auc.estimate.toFixed(2)} ${auc.ci95}` },
-          `Model discrimination: ${perf.discrimination} (AUC ${auc.estimate.toFixed(2)})`) : null));
+        auc ? h('span', { class: 'badge', style: { marginLeft: 'auto' }, title: `Holdout ROC-AUC ${auc.estimate.toFixed(2)} ${auc.ci95}; discrimination ${perf.discrimination}` },
+          `AUC ${auc.estimate.toFixed(2)} · ${perf.discrimination}`) : null));
     vessels.append(card);
   }
-  el.append(vessels);
-
-  const update = t => applyThreshold(el, { target: t, probability: probOf(t), thr: getThreshold(t), curves, label: LABEL[t] });
-  const opTarget = selected in LABEL ? selected : 'Cath';
-  el.append(
-    operatingSection({
-      curves, target: opTarget, patientP: probOf(opTarget),
-      getThr: () => getThreshold(opTarget),
-      setThr: t => { setThreshold(opTarget, t); update(opTarget); },
-      onTarget: onSelect,
-    }),
+  el.append(vessels,
     h('p', { class: 'small muted' },
-      'Probabilities are calibrated on development data. They estimate the chance of angiographically significant (≥ 50%) stenosis somewhere in the vessel — not how narrowed it is or where the narrowing sits.'));
-  ['Cath', ...SYSTEM_ORDER].forEach(update);
+      'Calibrated on development data: the chance of angiographically significant (≥ 50%) stenosis somewhere in the vessel — not how narrowed it is or where the narrowing sits.'));
+  ['Cath', ...SYSTEM_ORDER].forEach(t => applyThreshold(el, { target: t, probability: probOf(t), thr: getThreshold(t), curves, label: LABEL[t] }));
+}
+
+/** Threshold tab: the decision-threshold control for the selected estimate. */
+export function renderThreshold(el, { prediction, curves, selected, onSelect, getThreshold, setThreshold, onChange }) {
+  clear(el);
+  if (!prediction) { el.append(skeleton('Waiting for the first estimate')); return; }
+  const target = ['LAD', 'LCX', 'RCA'].includes(selected) ? selected : 'Cath';
+  const p = target === 'Cath' ? prediction.overall_cad.probability : prediction.vessels[target].probability;
+  el.append(operatingSection({
+    curves, target, patientP: p,
+    getThr: () => getThreshold(target),
+    setThr: t => { setThreshold(target, t); onChange?.(); },
+    onTarget: onSelect,
+  }));
 }

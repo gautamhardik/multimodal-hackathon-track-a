@@ -82,10 +82,12 @@ def test_example_patients_are_valid_inputs_without_labels(client):
 
 
 def test_frontend_is_served(client):
-    page = client.get("/")
-    assert page.status_code == 200 and "Coronary Risk Explorer" in page.text
-    assert "decision support" in page.text.lower()
-    assert client.get("/js/app.js").status_code == 200
+    for path in ("/", "/app.html"):
+        page = client.get(path)
+        assert page.status_code == 200 and "Coronary Risk Explorer" in page.text
+        assert "decision support" in page.text.lower()
+    for asset in ("/js/app.js", "/js/landing.js", "/js/scene/anatomy-loader.js"):
+        assert client.get(asset).status_code == 200
 
 
 def test_operating_curves_endpoint(client):

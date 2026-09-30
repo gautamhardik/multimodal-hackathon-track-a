@@ -1,11 +1,12 @@
 import { api } from './api.js';
 import { SYSTEMS, SYSTEM_ORDER, VIEWS } from './config/anatomy.js';
 import { PatientForm } from './ui/form.js';
-import { renderResults } from './ui/results.js';
+import { renderResults, renderThreshold } from './ui/results.js';
 import { renderExplain } from './ui/explain.js';
 import { renderEvidence } from './ui/evidence.js';
 import { h, clear } from './ui/dom.js';
 import { heatColor, heatGradientCss, pct } from './ui/colors.js';
+import { countUp, enter, initMotion } from './ui/motion.js';
 
 const $ = id => document.getElementById(id);
 const state = { prediction: null, performance: null, curves: null, globalImportance: null, examples: [], selected: 'Cath', tab: 'results' };
@@ -45,7 +46,7 @@ function setThreshold(target, t) {
 }
 
 // ---------------------------------------------------------------- tabs
-const TABS = { results: 'tab-results', explain: 'tab-explain', evidence: 'tab-evidence' };
+const TABS = { results: 'tab-results', threshold: 'tab-threshold', explain: 'tab-explain', evidence: 'tab-evidence' };
 function setTab(tab) {
   state.tab = tab;
   for (const [k, id] of Object.entries(TABS)) {
@@ -53,6 +54,7 @@ function setTab(tab) {
     $(`pane-${k}`).hidden = k !== tab;
   }
   renderAll();
+  enter([...$(`pane-${tab}`).children]);
 }
 Object.entries(TABS).forEach(([k, id]) => $(id).addEventListener('click', () => setTab(k)));
 
@@ -73,6 +75,12 @@ function renderLegend() {
     h('div', { class: 'nm' }, h('i'), 'Left main & great vessels: not modelled'));
 }
 
+function stripValue(sys, v) {
+  const el = h('span', { class: 'pr' }, '—');
+  if (v) countUp(el, `strip-${sys}`, v.probability, x => pct(x));
+  return el;
+}
+
 function renderVesselStrip() {
   const el = clear($('vessel-strip'));
   for (const sys of SYSTEM_ORDER) {
@@ -81,17 +89,40 @@ function renderVesselStrip() {
       type: 'button', class: 'vessel-btn', 'aria-pressed': String(state.selected === sys),
       onclick: () => select(state.selected === sys ? 'Cath' : sys),
     },
-      h('span', { class: 'sw', style: { background: v ? heatColor(v.probability) : 'var(--axis)' } }),
+      h('span', { class: 'sw', style: { background: v ? heatColor(v.probability) : 'var(--axis)', color: v ? heatColor(v.probability) : 'transparent' } }),
       h('span', {}, h('span', { class: 'nm' }, sys), h('br'), h('span', { class: 'small muted' }, SYSTEMS[sys].name.replace(' artery', ''))),
-      h('span', { class: 'pr' }, v ? pct(v.probability) : '—')));
+      stripValue(sys, v)));
+  }
+}
+
+// Pinned summary above the tabs: every estimate at a glance, flagged ones marked, click to select.
+function renderSummary() {
+  const el = clear($('summary-strip'));
+  const p = state.prediction;
+  for (const t of ['Cath', ...SYSTEM_ORDER]) {
+    const prob = !p ? null : t === 'Cath' ? p.overall_cad.probability : p.vessels[t].probability;
+    const flagged = prob != null && prob >= getThreshold(t);
+    const value = h('span', { class: 'sv' }, '—');
+    if (prob != null) countUp(value, `sum-${t}`, prob, x => pct(x));
+    el.append(h('button', {
+      type: 'button', class: `sum-chip${flagged ? ' flagged' : ''}`, 'aria-pressed': String(state.selected === t),
+      title: prob == null ? '' : `${t === 'Cath' ? 'Overall CAD' : SYSTEMS[t].name}: ${pct(prob)} — ${flagged ? 'at or above' : 'below'} the decision threshold (${pct(getThreshold(t))})`,
+      onclick: () => select(t),
+    },
+      h('span', { class: 'sd', style: prob == null ? {} : { background: heatColor(prob), color: heatColor(prob) } }),
+      h('span', { class: 'sn' }, t === 'Cath' ? 'CAD' : t), value));
   }
 }
 
 function renderAll() {
   renderVesselStrip();
+  renderSummary();
   const common = { prediction: state.prediction, performance: state.performance };
   if (state.tab === 'results') {
     renderResults($('pane-results'), { ...common, curves: state.curves, selected: state.selected, onSelect: select, getThreshold, setThreshold });
+  }
+  if (state.tab === 'threshold') {
+    renderThreshold($('pane-threshold'), { ...common, curves: state.curves, selected: state.selected, onSelect: select, getThreshold, setThreshold, onChange: renderSummary });
   }
   if (state.tab === 'explain') renderExplain($('pane-explain'), { ...common, target: state.selected, onTarget: select });
   if (state.tab === 'evidence') renderEvidence($('pane-evidence'), { ...common, globalImportance: state.globalImportance, target: state.selected });
@@ -153,7 +184,7 @@ function schedulePrediction() {
   debounce = setTimeout(runPrediction, 300);
 }
 
-const form = new PatientForm($('patient-form'), schedulePrediction);
+const form = new PatientForm($('patient-form'), schedulePrediction, $('form-tools'));
 
 // ---------------------------------------------------------------- 3D viewer
 async function initScene() {
@@ -161,6 +192,7 @@ async function initScene() {
     const { HeartScene } = await import('./scene/heart-scene.js');
     scene = new HeartScene($('canvas-wrap'), {
       onSelect: sys => select(state.selected === sys ? 'Cath' : sys),
+      onBackground: () => select('Cath'),
       onHover: (sys, pos) => {
         const tip = $('vessel-tooltip');
         if (!sys || !pos || !state.prediction) { tip.hidden = true; return; }
@@ -176,6 +208,7 @@ async function initScene() {
         tip.style.top = `${Math.max(8, pos.y - r.top - tip.offsetHeight - 10)}px`;
       },
     });
+    await scene.ready;
     $('viewer-loading').remove();
     if (state.prediction) {
       const v = state.prediction.vessels;
@@ -188,16 +221,49 @@ async function initScene() {
 }
 
 const viewButtons = $('view-buttons');
-for (const v of VIEWS) {
-  viewButtons.append(h('button', {
-    type: 'button', 'aria-pressed': String(v.id === 'anterior'), dataset: { view: v.id },
-    onclick: () => {
-      scene?.setView(v.id);
-      viewButtons.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === v.id)));
-      if (v.torso) $('toggle-torso').checked = true;
-    },
-  }, v.label));
+let currentView = 'anterior';
+function showView(id) {
+  const v = VIEWS.find(x => x.id === id);
+  if (!v) return;
+  currentView = id;
+  scene?.setView(id);
+  viewButtons.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.view === id)));
+  if (v.torso) $('toggle-torso').checked = true;
 }
+for (const v of VIEWS) {
+  viewButtons.append(h('button', { type: 'button', 'aria-pressed': String(v.id === 'anterior'), dataset: { view: v.id }, onclick: () => showView(v.id) }, v.label));
+}
+
+// ---------------------------------------------------------------- full-screen 3D, shortcuts
+function setStageMode(on) {
+  document.body.classList.toggle('stage-mode', on);
+  $('stage-btn').setAttribute('aria-pressed', String(on));
+}
+$('stage-btn').addEventListener('click', () => setStageMode(!document.body.classList.contains('stage-mode')));
+function toggleKeys(force) {
+  const pop = $('keys-pop');
+  const open = force ?? pop.hidden;
+  pop.hidden = !open;
+  $('keys-btn').setAttribute('aria-expanded', String(open));
+}
+$('keys-btn').addEventListener('click', () => toggleKeys());
+document.addEventListener('keydown', e => {
+  const t = e.target;
+  if (e.ctrlKey || e.metaKey || e.altKey || t.isContentEditable || ['INPUT', 'SELECT', 'TEXTAREA'].includes(t.tagName)) {
+    if (e.key === 'Escape' && t.classList?.contains('form-search')) t.blur();
+    return;
+  }
+  const targets = { 1: 'Cath', 2: 'LAD', 3: 'LCX', 4: 'RCA' };
+  if (targets[e.key]) { select(targets[e.key]); e.preventDefault(); }
+  else if (e.key === 'v' || e.key === 'V') { const i = VIEWS.findIndex(v => v.id === currentView); showView(VIEWS[(i + 1) % VIEWS.length].id); }
+  else if (e.key === 'f' || e.key === 'F') setStageMode(!document.body.classList.contains('stage-mode'));
+  else if (e.key === '/') { e.preventDefault(); setStageMode(false); form.searchEl?.focus(); }
+  else if (e.key === '?') toggleKeys();
+  else if (e.key === 'Escape') { toggleKeys(false); if (document.body.classList.contains('stage-mode')) setStageMode(false); else select('Cath'); }
+});
+
+// Hovering a measurement in the explanation highlights the matching input.
+document.addEventListener('feature-hover', e => form.highlight(e.detail));
 $('toggle-labels').addEventListener('change', e => scene?.setLabels(e.target.checked));
 $('toggle-torso').addEventListener('change', e => scene?.setTorso(e.target.checked));
 $('toggle-beat').addEventListener('change', e => scene?.setBeat(e.target.checked, form.values.PR));
@@ -216,8 +282,12 @@ $('reset-btn').addEventListener('click', () => {
 });
 
 async function boot() {
+  initMotion();
   renderLegend();
-  initScene();
+  renderVesselStrip();   // placeholders now, so the layout does not shift when estimates arrive
+  renderSummary();
+  const start = () => (window.requestIdleCallback ? requestIdleCallback(() => initScene(), { timeout: 1200 }) : setTimeout(initScene, 150));
+  if (document.readyState === 'complete') start(); else window.addEventListener('load', start, { once: true });
   const status = $('api-status');
   try {
     const health = await api.health();

@@ -1,5 +1,5 @@
 import { LABELS } from '../config/features.js';
-import { h, clear } from './dom.js';
+import { h, clear, skeleton } from './dom.js';
 
 const T = ['Cath', 'LAD', 'LCX', 'RCA'];
 const NAME = { Cath: 'Overall CAD', LAD: 'LAD', LCX: 'LCX', RCA: 'RCA' };
@@ -44,7 +44,7 @@ function importanceBars(gi, target) {
 
 export function renderEvidence(el, { performance, globalImportance, target }) {
   clear(el);
-  if (!performance) { el.append(h('p', { class: 'muted' }, 'Loading validation evidence…')); return; }
+  if (!performance) { el.append(skeleton('Loading validation evidence')); return; }
   const t = target || 'Cath';
   el.append(
     h('div', { class: 'section' }, h('h3', {}, 'How well do the models perform?'), metricTable(performance),
