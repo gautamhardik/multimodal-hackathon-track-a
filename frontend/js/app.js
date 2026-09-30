@@ -8,7 +8,7 @@ import { h, clear } from './ui/dom.js';
 import { heatColor, heatGradientCss, pct } from './ui/colors.js';
 
 const $ = id => document.getElementById(id);
-const state = { prediction: null, performance: null, globalImportance: null, examples: [], selected: 'Cath', tab: 'results' };
+const state = { prediction: null, performance: null, curves: null, globalImportance: null, examples: [], selected: 'Cath', tab: 'results' };
 let scene = null;
 let inflight = null;
 let debounce = null;
@@ -26,6 +26,23 @@ let debounce = null;
     try { localStorage.setItem('theme', document.documentElement.dataset.theme); } catch { /* ignore */ }
   });
 })();
+
+// ---------------------------------------------------------------- decision thresholds (per viewer, remembered)
+const thresholds = (() => {
+  try {
+    const saved = JSON.parse(localStorage.getItem('thresholds') || '{}');
+    return Object.fromEntries(Object.entries(saved).filter(([, v]) => Number.isFinite(v) && v >= 0.01 && v <= 0.99));
+  } catch { return {}; }
+})();
+function defaultThreshold(target) {
+  const r = target === 'Cath' ? state.prediction?.overall_cad : state.prediction?.vessels?.[target];
+  return r?.operating_threshold ?? state.curves?.targets?.[target]?.presets?.default?.threshold ?? 0.5;
+}
+function getThreshold(target) { return thresholds[target] ?? defaultThreshold(target); }
+function setThreshold(target, t) {
+  if (Math.abs(t - defaultThreshold(target)) < 5e-4) delete thresholds[target]; else thresholds[target] = t;
+  try { localStorage.setItem('thresholds', JSON.stringify(thresholds)); } catch { /* storage unavailable */ }
+}
 
 // ---------------------------------------------------------------- tabs
 const TABS = { results: 'tab-results', explain: 'tab-explain', evidence: 'tab-evidence' };
@@ -73,7 +90,9 @@ function renderVesselStrip() {
 function renderAll() {
   renderVesselStrip();
   const common = { prediction: state.prediction, performance: state.performance };
-  if (state.tab === 'results') renderResults($('pane-results'), { ...common, selected: state.selected, onSelect: select });
+  if (state.tab === 'results') {
+    renderResults($('pane-results'), { ...common, curves: state.curves, selected: state.selected, onSelect: select, getThreshold, setThreshold });
+  }
   if (state.tab === 'explain') renderExplain($('pane-explain'), { ...common, target: state.selected, onTarget: select });
   if (state.tab === 'evidence') renderEvidence($('pane-evidence'), { ...common, globalImportance: state.globalImportance, target: state.selected });
 }
@@ -150,7 +169,7 @@ async function initScene() {
         clear(tip).append(
           h('div', { class: 'v' }, pct(v.probability)),
           h('div', {}, SYSTEMS[sys].name),
-          h('div', { class: 's' }, v.prediction === 'Normal' ? 'Below operating threshold' : 'Stenosis flagged'),
+          h('div', { class: 's' }, v.probability >= getThreshold(sys) ? 'Stenosis flagged' : `Below decision threshold (${pct(getThreshold(sys))})`),
           h('div', { class: 's' }, 'Click for details'));
         tip.hidden = false;
         tip.style.left = `${Math.min(r.width - tip.offsetWidth - 8, pos.x - r.left + 14)}px`;
@@ -208,8 +227,9 @@ async function boot() {
     status.textContent = 'API unreachable';
     status.className = 'api-status err';
   }
-  const [perf, gi, ex] = await Promise.allSettled([api.performance(), api.globalImportance(), api.examples()]);
+  const [perf, gi, ex, oc] = await Promise.allSettled([api.performance(), api.globalImportance(), api.examples(), api.operatingCurves()]);
   if (perf.status === 'fulfilled') state.performance = perf.value;
+  if (oc.status === 'fulfilled') state.curves = oc.value;
   if (gi.status === 'fulfilled') state.globalImportance = gi.value;
   if (ex.status === 'fulfilled') {
     state.examples = ex.value.patients;

@@ -18,6 +18,7 @@ vessel-specific probabilities with exact SHAP explanations, visualised on an int
 | `05_Hyperparameter_Tuning.ipynb` | Nested tuning (outer 5×3, inner 3×2, Optuna) and final model registry |
 | `06_Final_Evaluation_and_SHAP.ipynb` | **One-time holdout evaluation** of the frozen v1 models, declared post-hoc CIs, SHAP |
 | `07_Development_Only_Improvements.ipynb` | Post-holdout, **development-only**: calibration, operating thresholds, ~30-candidate nested model search |
+| `08_Operating_Points.ipynb` | **Development-only** sensitivity/specificity trade-off of the served models at every threshold, with pre-declared presets |
 | `ml/dev_search.py` | Library behind Notebook 7 (never loads holdout rows) |
 | `backend/` | FastAPI inference service + tests; also serves the web app |
 | `frontend/` | Web app: Three.js 3D heart and coronary tree + clinical dashboard (no build step) |
@@ -104,6 +105,29 @@ All selection, weighting and calibration happens inside the inner loop. The comp
 
 Averaging many models adds about 0.01–0.02 ROC-AUC. That is consistent in direction but not statistically significant, and such ensembles cannot be explained exactly in real time. With 242 development patients, data rather than modelling is the binding constraint. Full tables are in `artifacts/dev_search/`.
 
+**Deep learning check (TabPFN v2, a pretrained tabular transformer).** It was run on the same 25 development folds, with default settings and no tuning. The script is `ml/tabpfn_eval.py`; results are in `artifacts/dev_search/tabpfn_v2_fold_results.csv`. A small MLP was already in the search above and did worse than logistic regression.
+
+| Target | Champion | TabPFN | TabPFN + DF | Mean(champion, TabPFN + DF) | Best p (corrected) |
+|---|---|---|---|---|---|
+| Cath | 0.929 | 0.943 | 0.943 | 0.941 | 0.08 |
+| LAD | 0.856 | 0.864 | 0.864 | 0.866 | 0.22 |
+| LCX | 0.745 | 0.732 | 0.734 | 0.748 | 0.86 |
+| RCA | 0.721 | 0.719 | 0.735 | 0.733 | 0.47 |
+
+TabPFN is no better than averaging all the classical models: none of the differences is significant, and it is worse for LCX. It is therefore not deployed.
+
+### Choosing the operating point (Notebook 8, development nested CV)
+A threshold cannot improve discrimination; it only moves along the same curve. The dashboard therefore lets the user choose the trade-off. The presets below are pre-declared rules applied to the mean development curve. The served v1.1 default sits between them.
+
+| Target | Catch more (sensitivity ≥ 0.90) | Default v1.1 | Balanced (Youden) | Fewer false alarms (specificity ≥ 0.90) |
+|---|---|---|---|---|
+| Cath | 0.56: sens 0.90 / spec 0.76 | 0.56: 0.90 / 0.76 | 0.74: 0.85 / 0.88 | 0.81: 0.80 / 0.91 |
+| LAD | 0.43: 0.90 / 0.64 | 0.55: 0.84 / 0.73 | 0.55: 0.84 / 0.74 | 0.81: 0.51 / 0.91 |
+| LCX | 0.22: 0.91 / 0.36 | 0.37: 0.72 / 0.63 | 0.35: 0.77 / 0.59 | 0.59: 0.33 / 0.91 |
+| RCA | 0.25: 0.91 / 0.33 | 0.37: 0.70 / 0.61 | 0.39: 0.67 / 0.65 | 0.56: 0.29 / 0.91 |
+
+Notebook 8 reproduces the v1.1 fold AUCs of Notebook 7 exactly before computing the curves. The full curves (with PPV, NPV and the range across repeats) are in `artifacts/deployment/operating_curves.json`.
+
 ## Web app: 3D visualisation and clinical dashboard
 
 **3D view** (Three.js / WebGL, runs on integrated graphics):
@@ -124,7 +148,7 @@ Averaging many models adds about 0.01–0.02 ROC-AUC. That is consistent in dire
 
 **Dashboard:**
 - **Patient inputs:** grouped inputs with units. BMI and obesity are derived, and chest-pain classes use a single control. Example patients come from the development cohort, with outcomes never shown. Predictions update live, with validation messages next to each field.
-- **Results:** the overall CAD estimate, the vessel estimates with operating-threshold markers, the model discrimination per vessel, a Cath/vessel consistency warning, and out-of-range input warnings.
+- **Results:** the overall CAD estimate, the vessel estimates with operating-threshold markers, the model discrimination per vessel, a Cath/vessel consistency warning, and out-of-range input warnings. A **Decision threshold** panel offers presets, a slider and a sensitivity/specificity chart marking the current patient. It shows development sensitivity, specificity, PPV and NPV at the chosen threshold, and the flags update live. Only the flag changes: probabilities, 3D colours and explanations do not depend on the threshold. Choices are remembered per browser.
 - **Why this estimate?:** a diverging SHAP chart (raises vs lowers), contribution by clinical domain, and a sortable physiological breakdown. The breakdown shows each measurement's value, typical adult range and share of the attribution.
 - **Model evidence:** holdout metrics with 95% CIs, development metrics for the served v1.1, observed stenosis rate per colour band, and global feature importance.
 - A clinical-safety disclaimer is always visible, and the canvas states that it shows model output on a schematic, not an image of the patient.
@@ -163,6 +187,7 @@ Averaging many models adds about 0.01–0.02 ROC-AUC. That is consistent in dire
 | `POST /predict` | Calibrated probabilities, operating-threshold flags, consistency check, per-feature SHAP explanations, input warnings |
 | `GET /global-importance` | Share of total mean \|SHAP\| per clinical feature and target |
 | `GET /probability-bands` | Observed stenosis rate per calibrated-probability band |
+| `GET /operating-curves` | Development sensitivity/specificity/PPV/NPV at every threshold, plus pre-declared presets |
 
 **Input rules:**
 - BMI and Obesity are derived from weight and height when omitted.

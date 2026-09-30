@@ -28,6 +28,7 @@ MANIFEST_PATH = ARTIFACTS_DIR / "final_model_manifest.json"
 POSTPROCESSING_PATH = DEPLOYMENT_DIR / "v1_1_postprocessing.json"
 TRAINING_RANGES_PATH = DEPLOYMENT_DIR / "training_ranges.json"
 COLOR_BANDS_PATH = DEPLOYMENT_DIR / "probability_band_validity.csv"
+OPERATING_CURVES_PATH = DEPLOYMENT_DIR / "operating_curves.json"
 
 MODEL_VERSION = "1.1.0"
 TARGET_NAMES = ["Cath", "LAD", "LCX", "RCA"]

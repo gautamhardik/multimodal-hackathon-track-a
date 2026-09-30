@@ -357,6 +357,75 @@ def summarise(fold_df, pooled):
     return pd.DataFrame(rows)
 
 
+# ----------------------------------------------------------------------------- operating points (Notebook 8)
+OPERATING_GRID = np.round(np.arange(0.01, 1.0, 0.01), 2)
+PRESET_RULES = {
+    'high_sensitivity': ('Catch more', 'highest threshold with mean development sensitivity >= 0.90'),
+    'balanced': ('Balanced', "Youden's J on the mean development curve (maximise sensitivity + specificity)"),
+    'high_specificity': ('Fewer false alarms', 'lowest threshold with mean development specificity >= 0.90'),
+}
+
+
+def _nested_champion_fold(target, k, tr, va):
+    """The v1.1 procedure (S0c) on one outer fold: champion fitted on tr, Platt fitted on its inner OOF, applied to va."""
+    from sklearn.model_selection import StratifiedKFold
+    _, Y, _, _ = load_development()
+    y = Y[target].values
+    oof = np.zeros(len(tr))
+    for a, b in StratifiedKFold(5, shuffle=True, random_state=SEED).split(tr, y[tr]):
+        oof[b] = fit_predict(target, 'champ', 'base', tr[a], tr[b])
+    ab = fit_platt(oof, y[tr])
+    return target, k, va, apply_platt(fit_predict(target, 'champ', 'base', tr, va), ab)
+
+
+def nested_calibrated_champion(n_jobs=-1):
+    """Calibrated v1.1 out-of-fold predictions for every development patient: {target: array (repeats x 242)}.
+    Same outer/inner splits as run_search, so fold AUCs reproduce procedure S0c exactly."""
+    from joblib import Parallel, delayed
+    X, _, cfg, _ = load_development()
+    jobs = [(t, k, tr, va) for t in cfg['target_columns'] for k, (tr, va) in enumerate(outer_splits(t))]
+    res = Parallel(n_jobs=n_jobs)(delayed(_nested_champion_fold)(*j) for j in jobs)
+    out = {t: np.zeros((OUTER_REPEATS, len(X))) for t in cfg['target_columns']}
+    for t, k, va, p in res:
+        out[t][k // OUTER_SPLITS, va] = p
+    return out
+
+
+def rule_metrics(p, y, h):
+    """Metrics of the rule `p >= h` for one set of predictions."""
+    q = p >= h
+    tp, fp = int((q & (y == 1)).sum()), int((q & (y == 0)).sum())
+    fn, tn = int(((~q) & (y == 1)).sum()), int(((~q) & (y == 0)).sum())
+    return {'sensitivity': tp / (tp + fn), 'specificity': tn / (tn + fp),
+            'PPV': tp / (tp + fp) if tp + fp else np.nan, 'NPV': tn / (tn + fn) if tn + fn else np.nan,
+            'flagged': (tp + fp) / len(y)}
+
+
+def mean_rule_metrics(P, y, h):
+    """Mean over repeats of rule_metrics, plus the min-max range of sensitivity and specificity across repeats."""
+    reps = pd.DataFrame([rule_metrics(p, y, h) for p in P])
+    out = reps.mean().to_dict()
+    for m in ('sensitivity', 'specificity'):
+        out[f'{m}_range'] = [float(reps[m].min()), float(reps[m].max())]
+    return out
+
+
+def operating_curve(P, y):
+    """Mean development metrics over OPERATING_GRID (thresholds on the calibrated probability scale)."""
+    return pd.DataFrame([{'threshold': float(h), **mean_rule_metrics(P, y, h)} for h in OPERATING_GRID])
+
+
+def operating_presets(curve):
+    """Apply the pre-declared PRESET_RULES to a mean development curve. A preset is None when no threshold satisfies it."""
+    out = {}
+    hs = curve[curve.sensitivity >= 0.90]
+    out['high_sensitivity'] = float(hs.threshold.max()) if len(hs) else None
+    out['balanced'] = float(curve.threshold[int(np.argmax(curve.sensitivity + curve.specificity - 1))])
+    sp = curve[curve.specificity >= 0.90]
+    out['high_specificity'] = float(sp.threshold.min()) if len(sp) else None
+    return out
+
+
 # ----------------------------------------------------------------------------- final v1.1 post-processing
 def frozen_config_oof(target, n_repeats=OUTER_REPEATS):
     """Repeated 5-fold out-of-fold probabilities of the frozen champion configuration on all 242 patients."""

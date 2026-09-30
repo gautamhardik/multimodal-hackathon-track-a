@@ -8,6 +8,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from .config import (COLOR_BANDS_PATH, DISCLAIMER, FRONTEND_DIR, GLOBAL_IMPORTANCE_PATH, HOLDOUT_CI_PATH, MANIFEST_PATH,
+                     OPERATING_CURVES_PATH,
                      MODEL_VERSION, PROBABILITY_DEFINITION, TARGET_NAMES)
 from .examples import example_patients
 from .inference import InferenceEngine
@@ -132,6 +133,13 @@ def performance():
             "notes": ["Holdout: 61 patients evaluated once with the frozen v1 models at threshold 0.50 (uncalibrated).",
                       "Calibration is monotone, so holdout ROC-AUC and AP also apply to v1.1.",
                       "v1.1 operating-point metrics are development nested-CV estimates (242 patients)."]}
+
+
+@app.get("/operating-curves", summary="Sensitivity/specificity trade-off per threshold", tags=["Governance"])
+def operating_curves():
+    """Development nested-CV metrics of the served v1.1 models at every calibrated threshold, plus pre-declared presets.
+    The threshold only changes the flag; probabilities and SHAP explanations do not depend on it."""
+    return _read_json(OPERATING_CURVES_PATH)
 
 
 @app.get("/example-patients", summary="Example patients from the development cohort", tags=["Inference"])

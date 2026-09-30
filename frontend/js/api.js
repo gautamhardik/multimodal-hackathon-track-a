@@ -16,6 +16,7 @@ export const api = {
   performance: () => request('/performance'),
   examples: () => request('/example-patients'),
   globalImportance: () => request('/global-importance'),
+  operatingCurves: () => request('/operating-curves'),
   predict: (payload, signal) => request('/predict', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },

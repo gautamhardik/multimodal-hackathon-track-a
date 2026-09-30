@@ -86,3 +86,16 @@ def test_frontend_is_served(client):
     assert page.status_code == 200 and "Coronary Risk Explorer" in page.text
     assert "decision support" in page.text.lower()
     assert client.get("/js/app.js").status_code == 200
+
+
+def test_operating_curves_endpoint(client):
+    data = client.get("/operating-curves").json()
+    assert "holdout was not used" in data["data"]
+    post = client.get("/model-info").json()["v1_1_postprocessing"]["targets"]
+    for t in ["Cath", "LAD", "LCX", "RCA"]:
+        d = data["targets"][t]
+        c = d["curve"]
+        assert len(c["threshold"]) == len(c["sensitivity"]) == len(c["specificity"]) == 99
+        assert all(a >= b for a, b in zip(c["sensitivity"], c["sensitivity"][1:]))   # monotone in the threshold
+        assert abs(d["presets"]["default"]["threshold"] - post[t]["operating_threshold"]) < 1e-3
+        assert d["presets"]["high_sensitivity"]["sensitivity"] >= 0.90
