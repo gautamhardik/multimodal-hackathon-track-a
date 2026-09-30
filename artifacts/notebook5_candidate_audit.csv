@@ -1,0 +1,8 @@
+target,model_type,prep,reason
+Cath,RandomForest,Config_B_OneHot,Top Cath baseline (AUC=0.932)
+Cath,XGBoost,Config_B_OneHot,Top Cath boosting model (F1=0.914)
+LAD,RandomForest,Config_A_Ordinal,Clear LAD benchmark leader (AUC=0.854)
+LCX,XGBoost,Config_B_OneHot,"Top LCX boosting model (AUC=0.750, F1=0.549)"
+LCX,RandomForest,Config_B_OneHot,Top LCX baseline (AUC=0.745)
+RCA,LogisticRegression,Config_A_Ordinal,Top RCA baseline (AUC=0.719)
+RCA,RandomForest,Config_B_OneHot,Secondary competitive tree candidate

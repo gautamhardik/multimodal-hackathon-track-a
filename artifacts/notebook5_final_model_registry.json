@@ -1,0 +1,86 @@
+{
+    "Cath": {
+        "target_name": "Cath",
+        "clinical_label": "Overall CAD",
+        "selected_model": "XGBoost",
+        "preprocessing": "Config_B_OneHot",
+        "final_inner_auc_on_242_dev": 0.9269,
+        "hyperparameters": {
+            "n_estimators": 300,
+            "learning_rate": 0.02693008444549291,
+            "max_depth": 4,
+            "min_child_weight": 5,
+            "subsample": 0.95,
+            "colsample_bytree": 0.95,
+            "reg_alpha": 0.062187047277690755,
+            "reg_lambda": 2.804685587557792,
+            "objective": "binary:logistic",
+            "eval_metric": "logloss",
+            "random_state": 42,
+            "n_jobs": -1
+        },
+        "outer_cv_roc_auc": "0.927 +/- 0.046",
+        "outer_cv_f1": "0.913 +/- 0.028",
+        "outer_cv_recall": "0.930 +/- 0.040"
+    },
+    "LAD": {
+        "target_name": "LAD",
+        "clinical_label": "LAD Stenosis",
+        "selected_model": "RandomForest",
+        "preprocessing": "Config_A_Ordinal",
+        "final_inner_auc_on_242_dev": 0.8602,
+        "hyperparameters": {
+            "n_estimators": 450,
+            "max_depth": 7,
+            "min_samples_split": 4,
+            "min_samples_leaf": 2,
+            "max_features": "sqrt",
+            "class_weight": "balanced",
+            "random_state": 42,
+            "n_jobs": -1
+        },
+        "outer_cv_roc_auc": "0.856 +/- 0.050",
+        "outer_cv_f1": "0.832 +/- 0.041",
+        "outer_cv_recall": "0.894 +/- 0.064"
+    },
+    "LCX": {
+        "target_name": "LCX",
+        "clinical_label": "LCX Stenosis",
+        "selected_model": "RandomForest",
+        "preprocessing": "Config_B_OneHot",
+        "final_inner_auc_on_242_dev": 0.7421,
+        "hyperparameters": {
+            "n_estimators": 200,
+            "max_depth": null,
+            "min_samples_split": 3,
+            "min_samples_leaf": 4,
+            "max_features": "log2",
+            "class_weight": null,
+            "random_state": 42,
+            "n_jobs": -1
+        },
+        "outer_cv_roc_auc": "0.750 +/- 0.058",
+        "outer_cv_f1": "0.490 +/- 0.125",
+        "outer_cv_recall": "0.417 +/- 0.174"
+    },
+    "RCA": {
+        "target_name": "RCA",
+        "clinical_label": "RCA Stenosis",
+        "selected_model": "RandomForest",
+        "preprocessing": "Config_B_OneHot",
+        "final_inner_auc_on_242_dev": 0.6819,
+        "hyperparameters": {
+            "n_estimators": 150,
+            "max_depth": 3,
+            "min_samples_split": 8,
+            "min_samples_leaf": 1,
+            "max_features": "log2",
+            "class_weight": null,
+            "random_state": 42,
+            "n_jobs": -1
+        },
+        "outer_cv_roc_auc": "0.703 +/- 0.047",
+        "outer_cv_f1": "0.418 +/- 0.116",
+        "outer_cv_recall": "0.349 +/- 0.158"
+    }
+}

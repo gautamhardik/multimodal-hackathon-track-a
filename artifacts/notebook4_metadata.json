@@ -1,0 +1,21 @@
+{
+    "notebook": "04_Boosting_Models.ipynb",
+    "total_evaluations": 400,
+    "development_cohort_size": 242,
+    "holdout_cohort_size": 61,
+    "targets_evaluated": [
+        "Cath",
+        "LAD",
+        "LCX",
+        "RCA"
+    ],
+    "boosting_models": [
+        "XGBoost",
+        "LightGBM"
+    ],
+    "preprocessing_configurations": [
+        "Config_A_Ordinal",
+        "Config_B_OneHot"
+    ],
+    "holdout_status": "SEALED_UNTOUCHED"
+}

@@ -1,0 +1,5 @@
+Target,Model,Dev Outer CV ROC-AUC,Holdout ROC-AUC,Δ ROC-AUC,Dev Outer CV F1,Holdout F1,Δ F1
+Cath,XGBoost,0.927 +/- 0.046,0.8540,-0.0730,0.913 +/- 0.028,0.8817,-0.0313
+LAD,RandomForest,0.856 +/- 0.050,0.7941,-0.0619,0.832 +/- 0.041,0.7838,-0.0482
+LCX,RandomForest,0.750 +/- 0.058,0.7297,-0.0203,0.490 +/- 0.125,0.4737,-0.0163
+RCA,RandomForest,0.703 +/- 0.047,0.7012,-0.0018,0.418 +/- 0.116,0.1667,-0.2513

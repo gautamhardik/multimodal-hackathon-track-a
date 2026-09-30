@@ -1,0 +1,8 @@
+Target,Candidate Criterion,Model,Preprocessing,ROC-AUC,F1,Recall
+Cath,Best ROC-AUC,RandomForest,Config_B_OneHot,0.932 +/- 0.039,0.912 +/- 0.026,0.947 +/- 0.039
+Cath,Best F1,XGBoost,Config_B_OneHot,0.925 +/- 0.039,0.914 +/- 0.028,0.936 +/- 0.042
+LAD,Best ROC-AUC,RandomForest,Config_A_Ordinal,0.854 +/- 0.056,0.845 +/- 0.046,0.899 +/- 0.047
+LCX,Best ROC-AUC,XGBoost,Config_B_OneHot,0.750 +/- 0.064,0.549 +/- 0.095,0.515 +/- 0.131
+LCX,Best F1,XGBoost,Config_A_Ordinal,0.747 +/- 0.063,0.557 +/- 0.090,0.521 +/- 0.128
+LCX,Best Recall,LightGBM,Config_B_OneHot,0.728 +/- 0.070,0.552 +/- 0.085,0.530 +/- 0.131
+RCA,Best ROC-AUC,LogisticRegression,Config_A_Ordinal,0.719 +/- 0.057,0.546 +/- 0.087,0.518 +/- 0.110

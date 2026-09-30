@@ -1,0 +1,138 @@
+{
+    "manifest_name": "Track A Multimodal CAD Final Model Manifest",
+    "timestamp": "2026-09-30",
+    "status": "FROZEN_RELEASE_CANDIDATE",
+    "cohort": {
+        "total_patients": 303,
+        "development_patients": 242,
+        "holdout_patients": 61,
+        "holdout_used_in_training": false,
+        "holdout_used_in_tuning": false,
+        "holdout_used_in_thresholding": false,
+        "evaluation_mode": "One-Time Sealed Test"
+    },
+    "pipelines": {
+        "Cath": {
+            "model_type": "XGBoost",
+            "preprocessing": "Config_B_OneHot",
+            "pipeline_path": "artifacts/models/cath_final_pipeline.joblib",
+            "pipeline_sha256": "077f82bafe7a574ad2714cd4942b09402eaa0da77e25dd10f4675cd7c7e862c5",
+            "shap_units": "log-odds",
+            "holdout_metrics": {
+                "Target": "Cath",
+                "Clinical Label": "Overall CAD",
+                "Model": "XGBoost",
+                "Preprocessing": "Config_B_OneHot",
+                "ROC-AUC": 0.854,
+                "PR-AUC": 0.9319,
+                "Accuracy": 0.8197,
+                "Precision": 0.82,
+                "Recall": 0.9535,
+                "F1-Score": 0.8817,
+                "Positives (N=61)": 43,
+                "Negatives (N=61)": 18
+            },
+            "outer_cv_metrics": {
+                "roc_auc": "0.927 +/- 0.046",
+                "f1": "0.913 +/- 0.028"
+            }
+        },
+        "LAD": {
+            "model_type": "RandomForest",
+            "preprocessing": "Config_A_Ordinal",
+            "pipeline_path": "artifacts/models/lad_final_pipeline.joblib",
+            "pipeline_sha256": "323185f0c5b90b41396c6cf2a49f4706868b7bb5d1f85fb54b1975d4f92a5cef",
+            "shap_units": "probability",
+            "holdout_metrics": {
+                "Target": "LAD",
+                "Clinical Label": "LAD Stenosis",
+                "Model": "RandomForest",
+                "Preprocessing": "Config_A_Ordinal",
+                "ROC-AUC": 0.7941,
+                "PR-AUC": 0.8271,
+                "Accuracy": 0.7377,
+                "Precision": 0.725,
+                "Recall": 0.8529,
+                "F1-Score": 0.7838,
+                "Positives (N=61)": 34,
+                "Negatives (N=61)": 27
+            },
+            "outer_cv_metrics": {
+                "roc_auc": "0.856 +/- 0.050",
+                "f1": "0.832 +/- 0.041"
+            }
+        },
+        "LCX": {
+            "model_type": "RandomForest",
+            "preprocessing": "Config_B_OneHot",
+            "pipeline_path": "artifacts/models/lcx_final_pipeline.joblib",
+            "pipeline_sha256": "c93c3a8815d1c498a984e6f56bdd2b3dd5712ea15bac82098bb55c4522bce8e4",
+            "shap_units": "probability",
+            "holdout_metrics": {
+                "Target": "LCX",
+                "Clinical Label": "LCX Stenosis",
+                "Model": "RandomForest",
+                "Preprocessing": "Config_B_OneHot",
+                "ROC-AUC": 0.7297,
+                "PR-AUC": 0.6256,
+                "Accuracy": 0.6721,
+                "Precision": 0.75,
+                "Recall": 0.3462,
+                "F1-Score": 0.4737,
+                "Positives (N=61)": 26,
+                "Negatives (N=61)": 35
+            },
+            "outer_cv_metrics": {
+                "roc_auc": "0.750 +/- 0.058",
+                "f1": "0.490 +/- 0.125"
+            }
+        },
+        "RCA": {
+            "model_type": "RandomForest",
+            "preprocessing": "Config_B_OneHot",
+            "pipeline_path": "artifacts/models/rca_final_pipeline.joblib",
+            "pipeline_sha256": "aeb7e4155c303b394af94b2c3d082b56dc24009a4ff37d55c496832e0a926c50",
+            "shap_units": "probability",
+            "holdout_metrics": {
+                "Target": "RCA",
+                "Clinical Label": "RCA Stenosis",
+                "Model": "RandomForest",
+                "Preprocessing": "Config_B_OneHot",
+                "ROC-AUC": 0.7012,
+                "PR-AUC": 0.5126,
+                "Accuracy": 0.6721,
+                "Precision": 0.5,
+                "Recall": 0.1,
+                "F1-Score": 0.1667,
+                "Positives (N=61)": 20,
+                "Negatives (N=61)": 41
+            },
+            "outer_cv_metrics": {
+                "roc_auc": "0.703 +/- 0.047",
+                "f1": "0.418 +/- 0.116"
+            }
+        }
+    },
+    "metric_definitions": {
+        "PR-AUC": "average precision (sklearn.average_precision_score)",
+        "threshold": "0.50 on uncalibrated v1 model probability"
+    },
+    "post_hoc_supplement": "artifacts/final_evaluation/holdout_metrics_with_ci.csv (descriptive; declared post-hoc)",
+    "explainability": {
+        "method": "SHAP TreeExplainer (tree_path_dependent; no background dataset)",
+        "explained_cohort": "ALL 242 Development Patients",
+        "units": {
+            "Cath": "log-odds",
+            "LAD": "probability",
+            "LCX": "probability",
+            "RCA": "probability"
+        },
+        "feature_mapping_file": "artifacts/shap/shap_feature_mapping.json"
+    },
+    "clinical_disclaimer": "For decision-support and educational purposes only. This model is not a medical diagnostic device and does not replace formal clinical assessment or diagnostic imaging.",
+    "v1_1_postprocessing": {
+        "file": "artifacts/deployment/v1_1_postprocessing.json",
+        "holdout_used": false,
+        "note": "Holdout metrics in this manifest describe the frozen v1 models at 0.50; calibration does not change ROC-AUC or AP."
+    }
+}

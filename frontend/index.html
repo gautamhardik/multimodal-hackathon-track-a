@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Coronary Risk Explorer</title>
+  <meta name="description" content="Interactive 3D coronary visualisation of model-estimated CAD and vessel stenosis probabilities with SHAP explanations. Decision support and education only.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 28S3 20 3 11a6.5 6.5 0 0 1 13-2 6.5 6.5 0 0 1 13 2c0 9-13 17-13 17z' fill='%23e31a1c'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="css/app.css">
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.170.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.170.0/examples/jsm/"
+      }
+    }
+  </script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <svg class="brand-mark" viewBox="0 0 32 32" aria-hidden="true"><path d="M16 28S3 20 3 11a6.5 6.5 0 0 1 13-2 6.5 6.5 0 0 1 13 2c0 9-13 17-13 17z"/></svg>
+      <div>
+        <h1>Coronary Risk Explorer</h1>
+        <p class="subtitle">Overall CAD and LAD / LCX / RCA stenosis estimates from routine clinical data</p>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <span class="api-status" id="api-status" role="status">Connecting…</span>
+      <button class="icon-btn" id="theme-toggle" type="button" aria-label="Toggle light or dark theme" title="Toggle theme">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 9 9 7 7 0 0 1-9-9z"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <div class="disclaimer" role="note">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2 1 21h22L12 2zm0 6 .01 7M12 18h.01"/></svg>
+    <p><strong>For decision support and education only.</strong> Not a medical diagnostic device and not a substitute for clinical assessment or diagnostic imaging (coronary angiography). Probabilities are model estimates for patients similar to a single-centre referral cohort.</p>
+  </div>
+
+  <main class="layout">
+    <aside class="panel panel-inputs" aria-labelledby="inputs-title">
+      <div class="panel-head">
+        <h2 id="inputs-title">Patient inputs</h2>
+        <button class="text-btn" id="reset-btn" type="button">Reset</button>
+      </div>
+      <label class="field-label" for="example-select">Load an example (development cohort)</label>
+      <select id="example-select" class="select"><option value="">Choose an example patient…</option></select>
+      <p class="hint" id="example-desc"></p>
+      <form id="patient-form" novalidate></form>
+      <div class="form-errors" id="form-errors" role="alert" hidden></div>
+    </aside>
+
+    <section class="viewer" aria-label="3D coronary artery visualisation">
+      <div class="viewer-toolbar" role="toolbar" aria-label="View controls">
+        <div class="seg" id="view-buttons" role="group" aria-label="Camera view"></div>
+        <div class="toggles">
+          <label class="toggle"><input type="checkbox" id="toggle-labels" checked> Labels</label>
+          <label class="toggle"><input type="checkbox" id="toggle-torso"> Torso</label>
+          <label class="toggle"><input type="checkbox" id="toggle-beat"> Heartbeat</label>
+        </div>
+      </div>
+      <div class="canvas-wrap" id="canvas-wrap">
+        <div class="viewer-loading" id="viewer-loading">Loading 3D viewer…</div>
+        <div class="vessel-tooltip" id="vessel-tooltip" hidden></div>
+        <div class="legend" id="legend" aria-label="Colour scale legend"></div>
+        <p class="canvas-note">Model output mapped onto a schematic coronary tree — not an image of this patient's arteries. Colour covers the whole vessel because the model does not localise lesions.</p>
+      </div>
+      <div class="vessel-strip" id="vessel-strip" role="group" aria-label="Select a vessel"></div>
+    </section>
+
+    <aside class="panel panel-results" aria-label="Results">
+      <div class="tabs" role="tablist">
+        <button role="tab" id="tab-results" aria-selected="true" aria-controls="pane-results">Results</button>
+        <button role="tab" id="tab-explain" aria-selected="false" aria-controls="pane-explain">Why this estimate?</button>
+        <button role="tab" id="tab-evidence" aria-selected="false" aria-controls="pane-evidence">Model evidence</button>
+      </div>
+      <div class="pane" id="pane-results" role="tabpanel" aria-labelledby="tab-results"></div>
+      <div class="pane" id="pane-explain" role="tabpanel" aria-labelledby="tab-explain" hidden></div>
+      <div class="pane" id="pane-evidence" role="tabpanel" aria-labelledby="tab-evidence" hidden></div>
+    </aside>
+  </main>
+
+  <div class="chart-tooltip" id="chart-tooltip" role="tooltip" hidden></div>
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

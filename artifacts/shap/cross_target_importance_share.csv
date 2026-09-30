@@ -1,0 +1,55 @@
+Source Feature,Clinical Domain,Cath_share_%,LAD_share_%,LCX_share_%,RCA_share_%,Mean_share_%
+Typical Chest Pain,Symptom,27.2021,15.9928,8.6953,9.3955,15.3214
+Age,Demographic,9.6575,8.4119,11.7907,14.7345,11.1486
+EF-TTE,Echocardiographic,12.2158,10.0421,3.5825,2.0805,6.9802
+FBS,Laboratory,8.2411,3.2416,6.0199,6.1725,5.9188
+Atypical,Symptom,0.9946,9.4805,3.5114,8.2203,5.5517
+ESR,Laboratory,6.3305,4.2078,2.825,5.6854,4.7622
+TG,Laboratory,6.9702,2.6899,3.9227,1.8246,3.8519
+Region RWMA,Echocardiographic,5.3806,7.8477,1.0741,0.5697,3.718
+HTN,Clinical History,5.9662,1.5155,2.1067,1.825,2.8534
+Lymph,Laboratory,0.454,2.2228,2.9857,5.5216,2.796
+Neut,Laboratory,0.1613,2.2818,1.8616,6.4046,2.6773
+CR,Laboratory,0.6319,1.6642,6.2506,1.5742,2.5302
+BP,Vital Signs,1.5755,3.828,3.1635,1.133,2.425
+K,Laboratory,0.6607,1.8482,3.2727,3.0597,2.2103
+PLT,Laboratory,0.1443,1.4061,5.1381,2.0802,2.1922
+HB,Laboratory,1.6569,1.1396,2.4449,2.8959,2.0343
+Length,Demographic,0.5165,1.0163,4.3333,2.1597,2.0065
+WBC,Laboratory,0.3416,1.4275,2.5877,3.2326,1.8973
+Tinversion,ECG,3.0748,3.0733,1.0764,0.2015,1.8565
+BMI,Demographic,2.2211,1.4242,2.1899,1.3663,1.8004
+VHD,Echocardiographic,1.5686,0.9684,1.6693,2.172,1.5946
+DM,Clinical History,0.5668,0.3878,1.0116,3.7363,1.4256
+HDL,Laboratory,1.3492,0.821,2.3779,1.0851,1.4083
+Na,Laboratory,0.4723,1.2935,3.0158,0.6056,1.3468
+LDL,Laboratory,0.3556,1.5265,2.2415,0.9088,1.2581
+Weight,Demographic,0.1302,1.6953,1.6252,1.4652,1.229
+BUN,Laboratory,0.0,0.9978,2.8255,0.9611,1.1961
+PR,Vital Signs,0.5745,2.0223,0.5211,0.741,0.9647
+Sex,Demographic,0.0,0.6727,1.1096,1.6823,0.8661
+Dyspnea,Symptom,0.5856,0.2147,0.2305,1.4107,0.6104
+Function Class,Clinical Status,0.0,0.4252,0.7088,0.9793,0.5283
+St Depression,ECG,0.0,0.6136,0.1627,0.6931,0.3673
+DLP,Clinical History,0.0,0.3073,0.5921,0.2862,0.2964
+FH,Clinical History,0.0,0.2212,0.5722,0.2655,0.2647
+Systolic Murmur,Physical Exam,0.0,0.1049,0.7022,0.2095,0.2542
+Nonanginal,Symptom,0.0,0.7481,0.0427,0.2069,0.2494
+Current Smoker,Behavioral,0.0,0.3392,0.4697,0.0379,0.2117
+Obesity,Clinical Status,0.0,0.1612,0.4661,0.1515,0.1947
+St Elevation,ECG,0.0,0.4502,0.0799,0.2037,0.1835
+Poor R Progression,ECG,0.0,0.0208,0.0,0.6397,0.1651
+EX-Smoker,Behavioral,0.0,0.0412,0.3194,0.1807,0.1353
+BBB,ECG,0.0,0.16,0.0752,0.3009,0.134
+Q Wave,ECG,0.0,0.2572,0.0,0.225,0.1206
+Diastolic Murmur,Physical Exam,0.0,0.2923,0.0319,0.1533,0.1194
+CVA,Clinical History,0.0,0.0524,0.0,0.2326,0.0712
+Thyroid Disease,Clinical History,0.0,0.1658,0.0519,0.0,0.0544
+Weak Peripheral Pulse,Physical Exam,0.0,0.0367,0.0,0.1438,0.0451
+Edema,Physical Exam,0.0,0.0608,0.0675,0.0194,0.0369
+LVH,ECG,0.0,0.0389,0.0868,0.0185,0.036
+Lung rales,Physical Exam,0.0,0.0739,0.0225,0.0399,0.034
+CRF,Clinical History,0.0,0.0362,0.0577,0.0313,0.0313
+Airway disease,Clinical History,0.0,0.0312,0.03,0.0291,0.0226
+CHF,Clinical History,0.0,0.0,0.0,0.0471,0.0118
+LowTH Ang,Symptom,0.0,0.0,0.0,0.0,0.0

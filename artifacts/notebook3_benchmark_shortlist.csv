@@ -1,0 +1,7 @@
+Target,Benchmark Criterion,Model,Preprocessing,ROC-AUC,F1,Recall
+Cath,Best ROC-AUC,RandomForest,Config_B_OneHot,0.932 +/- 0.039,0.912 +/- 0.026,0.947 +/- 0.039
+LAD,Best ROC-AUC,RandomForest,Config_A_Ordinal,0.854 +/- 0.056,0.845 +/- 0.046,0.899 +/- 0.047
+LCX,Best ROC-AUC,RandomForest,Config_B_OneHot,0.745 +/- 0.055,0.501 +/- 0.098,0.412 +/- 0.123
+LCX,Best F1,RandomForest,Config_A_Ordinal,0.742 +/- 0.061,0.516 +/- 0.069,0.431 +/- 0.094
+LCX,Best Recall,LogisticRegression,Config_B_OneHot,0.678 +/- 0.064,0.503 +/- 0.081,0.474 +/- 0.114
+RCA,Best ROC-AUC,LogisticRegression,Config_A_Ordinal,0.719 +/- 0.057,0.546 +/- 0.087,0.518 +/- 0.110

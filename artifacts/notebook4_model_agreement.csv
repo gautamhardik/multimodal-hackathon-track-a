@@ -1,0 +1,5 @@
+Target,Comparison,Pearson r,Spearman rho,Label Agreement %
+Cath,XGBoost vs LightGBM (Config A),0.98,0.974,95.87
+LAD,XGBoost vs LightGBM (Config A),0.966,0.969,94.21
+LCX,XGBoost vs LightGBM (Config A),0.946,0.95,92.56
+RCA,XGBoost vs LightGBM (Config A),0.918,0.925,90.08

@@ -1,0 +1,26 @@
+{
+    "notebook": "05_Hyperparameter_Tuning.ipynb",
+    "optimization_method": "Optuna TPESampler Nested CV",
+    "outer_cv": "RepeatedStratifiedKFold (5 splits x 3 repeats = 15 outer folds)",
+    "inner_cv": "RepeatedStratifiedKFold (3 splits x 2 repeats = 6 inner folds)",
+    "configured_budget": {
+        "RandomForest": 25,
+        "XGBoost": 25,
+        "LogisticRegression": 15
+    },
+    "effective_budget": {
+        "RandomForest": 10,
+        "XGBoost": 10,
+        "LogisticRegression": 10
+    },
+    "effective_budget_cap": 10,
+    "final_hyperparameter_optimization": {
+        "cohort": "ALL 242 development patients",
+        "inner_cv": "RepeatedStratifiedKFold (3 splits x 2 repeats = 6 inner folds)",
+        "trials_per_champion": 10
+    },
+    "candidates_tuned_count": 7,
+    "development_cohort_size": 242,
+    "holdout_cohort_size": 61,
+    "holdout_status": "SEALED_UNTOUCHED"
+}

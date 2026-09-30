@@ -1,0 +1,177 @@
+{
+  "version": "1.1.0",
+  "created_by": "07_Development_Only_Improvements.ipynb",
+  "holdout_used": false,
+  "description": "Frozen v1 pipelines + development-only Platt calibration + pre-declared operating thresholds. Calibration is strictly increasing, so the Notebook 6 holdout ROC-AUC / AP apply unchanged; threshold-dependent metrics are development nested-CV estimates.",
+  "decision_rule": "switch model only if dAUC > 1 corrected SE and Brier not worse; switched models forfeit the holdout estimate",
+  "targets": {
+    "Cath": {
+      "pipeline_path": "artifacts/models/cath_final_pipeline.joblib",
+      "pipeline_sha256": "077f82bafe7a574ad2714cd4942b09402eaa0da77e25dd10f4675cd7c7e862c5",
+      "calibration": {
+        "method": "platt_on_logit",
+        "a": 1.2057754947284636,
+        "b": -0.14023065660697046,
+        "fitted_on": "5x5 repeated OOF predictions, 242 development patients"
+      },
+      "operating_threshold": 0.5622685551643372,
+      "threshold_rule": "highest threshold with development sensitivity >= 0.90 (rule-out safety)",
+      "development_nested_cv": {
+        "v1_shipped_at_0.50": {
+          "ROC_AUC": 0.9285,
+          "AP": 0.968,
+          "Brier": 0.0959,
+          "calibration_slope": 1.2077,
+          "sensitivity": 0.9237,
+          "specificity": 0.6957,
+          "PPV": 0.8838,
+          "NPV": 0.7852,
+          "balanced_accuracy": 0.8097,
+          "MCC": 0.6437,
+          "F1": 0.9033,
+          "accuracy": 0.8587
+        },
+        "v1_1_calibrated_at_operating_threshold": {
+          "ROC_AUC": 0.9285,
+          "AP": 0.9665,
+          "Brier": 0.0963,
+          "calibration_slope": 0.9665,
+          "sensitivity": 0.904,
+          "specificity": 0.7391,
+          "PPV": 0.8968,
+          "NPV": 0.7554,
+          "balanced_accuracy": 0.8216,
+          "MCC": 0.6476,
+          "F1": 0.9004,
+          "accuracy": 0.857
+        }
+      }
+    },
+    "LAD": {
+      "pipeline_path": "artifacts/models/lad_final_pipeline.joblib",
+      "pipeline_sha256": "323185f0c5b90b41396c6cf2a49f4706868b7bb5d1f85fb54b1975d4f92a5cef",
+      "calibration": {
+        "method": "platt_on_logit",
+        "a": 1.8930840260074846,
+        "b": -0.08276599812212962,
+        "fitted_on": "5x5 repeated OOF predictions, 242 development patients"
+      },
+      "operating_threshold": 0.5486641774299559,
+      "threshold_rule": "Youden's J (maximise sensitivity + specificity)",
+      "development_nested_cv": {
+        "v1_shipped_at_0.50": {
+          "ROC_AUC": 0.8555,
+          "AP": 0.8737,
+          "Brier": 0.1624,
+          "calibration_slope": 1.8938,
+          "sensitivity": 0.8783,
+          "specificity": 0.6727,
+          "PPV": 0.7951,
+          "NPV": 0.793,
+          "balanced_accuracy": 0.7755,
+          "MCC": 0.5693,
+          "F1": 0.8346,
+          "accuracy": 0.7942
+        },
+        "v1_1_calibrated_at_operating_threshold": {
+          "ROC_AUC": 0.8555,
+          "AP": 0.8694,
+          "Brier": 0.1507,
+          "calibration_slope": 0.9501,
+          "sensitivity": 0.8182,
+          "specificity": 0.7313,
+          "PPV": 0.8153,
+          "NPV": 0.738,
+          "balanced_accuracy": 0.7747,
+          "MCC": 0.5513,
+          "F1": 0.8162,
+          "accuracy": 0.7826
+        }
+      }
+    },
+    "LCX": {
+      "pipeline_path": "artifacts/models/lcx_final_pipeline.joblib",
+      "pipeline_sha256": "c93c3a8815d1c498a984e6f56bdd2b3dd5712ea15bac82098bb55c4522bce8e4",
+      "calibration": {
+        "method": "platt_on_logit",
+        "a": 1.8526165522956641,
+        "b": 0.33773946361238955,
+        "fitted_on": "5x5 repeated OOF predictions, 242 development patients"
+      },
+      "operating_threshold": 0.3739665248506214,
+      "threshold_rule": "Youden's J (maximise sensitivity + specificity)",
+      "development_nested_cv": {
+        "v1_shipped_at_0.50": {
+          "ROC_AUC": 0.7451,
+          "AP": 0.6251,
+          "Brier": 0.2037,
+          "calibration_slope": 1.8545,
+          "sensitivity": 0.3419,
+          "specificity": 0.9074,
+          "PPV": 0.6978,
+          "NPV": 0.6884,
+          "balanced_accuracy": 0.6247,
+          "MCC": 0.3103,
+          "F1": 0.4588,
+          "accuracy": 0.6901
+        },
+        "v1_1_calibrated_at_operating_threshold": {
+          "ROC_AUC": 0.7451,
+          "AP": 0.6239,
+          "Brier": 0.1985,
+          "calibration_slope": 0.9607,
+          "sensitivity": 0.7011,
+          "specificity": 0.643,
+          "PPV": 0.5508,
+          "NPV": 0.7753,
+          "balanced_accuracy": 0.672,
+          "MCC": 0.3349,
+          "F1": 0.6168,
+          "accuracy": 0.6653
+        }
+      }
+    },
+    "RCA": {
+      "pipeline_path": "artifacts/models/rca_final_pipeline.joblib",
+      "pipeline_sha256": "aeb7e4155c303b394af94b2c3d082b56dc24009a4ff37d55c496832e0a926c50",
+      "calibration": {
+        "method": "platt_on_logit",
+        "a": 2.265416084964576,
+        "b": 0.5541749495757103,
+        "fitted_on": "5x5 repeated OOF predictions, 242 development patients"
+      },
+      "operating_threshold": 0.3722244001317381,
+      "threshold_rule": "Youden's J (maximise sensitivity + specificity)",
+      "development_nested_cv": {
+        "v1_shipped_at_0.50": {
+          "ROC_AUC": 0.7206,
+          "AP": 0.6132,
+          "Brier": 0.2136,
+          "calibration_slope": 2.2727,
+          "sensitivity": 0.2021,
+          "specificity": 0.9527,
+          "PPV": 0.7282,
+          "NPV": 0.6529,
+          "balanced_accuracy": 0.5774,
+          "MCC": 0.2427,
+          "F1": 0.3159,
+          "accuracy": 0.6612
+        },
+        "v1_1_calibrated_at_operating_threshold": {
+          "ROC_AUC": 0.7206,
+          "AP": 0.6011,
+          "Brier": 0.2072,
+          "calibration_slope": 1.0255,
+          "sensitivity": 0.6979,
+          "specificity": 0.5919,
+          "PPV": 0.5224,
+          "NPV": 0.7547,
+          "balanced_accuracy": 0.6449,
+          "MCC": 0.2834,
+          "F1": 0.5968,
+          "accuracy": 0.6331
+        }
+      }
+    }
+  }
+}

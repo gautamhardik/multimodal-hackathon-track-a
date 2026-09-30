@@ -1,0 +1,28 @@
+{
+    "patient_id": "PATIENT_SAMPLE_01",
+    "disclaimer": "For decision-support and educational purposes only. This model is not a medical diagnostic device and does not replace formal clinical assessment or diagnostic imaging.",
+    "score_type": "uncalibrated v1 model probability (calibrated v1.1 contract: see Notebook 7 and the backend)",
+    "overall_cad": {
+        "target": "Cath",
+        "predicted_cad_probability": 0.9886000156402588,
+        "prediction": "CAD",
+        "model": "XGBoost"
+    },
+    "vessels": {
+        "LAD": {
+            "artery": "Left Anterior Descending",
+            "predicted_stenosis_probability": 0.7692,
+            "prediction": "Stenotic"
+        },
+        "LCX": {
+            "artery": "Left Circumflex",
+            "predicted_stenosis_probability": 0.4965,
+            "prediction": "Normal"
+        },
+        "RCA": {
+            "artery": "Right Coronary Artery",
+            "predicted_stenosis_probability": 0.4479,
+            "prediction": "Normal"
+        }
+    }
+}

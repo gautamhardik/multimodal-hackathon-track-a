@@ -1,0 +1,1408 @@
+{
+    "Cath": [
+        {
+            "transformed_feature": "num__Age",
+            "source_feature": "Age",
+            "display_name": "Age",
+            "clinical_domain": "Demographic"
+        },
+        {
+            "transformed_feature": "num__Weight",
+            "source_feature": "Weight",
+            "display_name": "Weight",
+            "clinical_domain": "Demographic"
+        },
+        {
+            "transformed_feature": "num__Length",
+            "source_feature": "Length",
+            "display_name": "Length",
+            "clinical_domain": "Demographic"
+        },
+        {
+            "transformed_feature": "num__BMI",
+            "source_feature": "BMI",
+            "display_name": "BMI",
+            "clinical_domain": "Demographic"
+        },
+        {
+            "transformed_feature": "num__BP",
+            "source_feature": "BP",
+            "display_name": "BP",
+            "clinical_domain": "Vital Signs"
+        },
+        {
+            "transformed_feature": "num__PR",
+            "source_feature": "PR",
+            "display_name": "PR",
+            "clinical_domain": "Vital Signs"
+        },
+        {
+            "transformed_feature": "num__FBS",
+            "source_feature": "FBS",
+            "display_name": "FBS",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__CR",
+            "source_feature": "CR",
+            "display_name": "CR",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__TG",
+            "source_feature": "TG",
+            "display_name": "TG",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__LDL",
+            "source_feature": "LDL",
+            "display_name": "LDL",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__HDL",
+            "source_feature": "HDL",
+            "display_name": "HDL",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__BUN",
+            "source_feature": "BUN",
+            "display_name": "BUN",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__ESR",
+            "source_feature": "ESR",
+            "display_name": "ESR",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__HB",
+            "source_feature": "HB",
+            "display_name": "HB",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__K",
+            "source_feature": "K",
+            "display_name": "K",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__Na",
+            "source_feature": "Na",
+            "display_name": "Na",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__WBC",
+            "source_feature": "WBC",
+            "display_name": "WBC",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__Lymph",
+            "source_feature": "Lymph",
+            "display_name": "Lymph",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__Neut",
+            "source_feature": "Neut",
+            "display_name": "Neut",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__PLT",
+            "source_feature": "PLT",
+            "display_name": "PLT",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__EF-TTE",
+            "source_feature": "EF-TTE",
+            "display_name": "EF-TTE",
+            "clinical_domain": "Echocardiographic"
+        },
+        {
+            "transformed_feature": "num__Function Class",
+            "source_feature": "Function Class",
+            "display_name": "Function Class",
+            "clinical_domain": "Clinical Status"
+        },
+        {
+            "transformed_feature": "num__Region RWMA",
+            "source_feature": "Region RWMA",
+            "display_name": "Region RWMA",
+            "clinical_domain": "Echocardiographic"
+        },
+        {
+            "transformed_feature": "bin_str__Obesity",
+            "source_feature": "Obesity",
+            "display_name": "Obesity",
+            "clinical_domain": "Clinical Status"
+        },
+        {
+            "transformed_feature": "bin_str__CRF",
+            "source_feature": "CRF",
+            "display_name": "CRF",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_str__CVA",
+            "source_feature": "CVA",
+            "display_name": "CVA",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_str__Airway disease",
+            "source_feature": "Airway disease",
+            "display_name": "Airway disease",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_str__Thyroid Disease",
+            "source_feature": "Thyroid Disease",
+            "display_name": "Thyroid Disease",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_str__CHF",
+            "source_feature": "CHF",
+            "display_name": "CHF",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_str__DLP",
+            "source_feature": "DLP",
+            "display_name": "DLP",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_str__Weak Peripheral Pulse",
+            "source_feature": "Weak Peripheral Pulse",
+            "display_name": "Weak Peripheral Pulse",
+            "clinical_domain": "Physical Exam"
+        },
+        {
+            "transformed_feature": "bin_str__Lung rales",
+            "source_feature": "Lung rales",
+            "display_name": "Lung rales",
+            "clinical_domain": "Physical Exam"
+        },
+        {
+            "transformed_feature": "bin_str__Systolic Murmur",
+            "source_feature": "Systolic Murmur",
+            "display_name": "Systolic Murmur",
+            "clinical_domain": "Physical Exam"
+        },
+        {
+            "transformed_feature": "bin_str__Diastolic Murmur",
+            "source_feature": "Diastolic Murmur",
+            "display_name": "Diastolic Murmur",
+            "clinical_domain": "Physical Exam"
+        },
+        {
+            "transformed_feature": "bin_str__Dyspnea",
+            "source_feature": "Dyspnea",
+            "display_name": "Dyspnea",
+            "clinical_domain": "Symptom"
+        },
+        {
+            "transformed_feature": "bin_str__Atypical",
+            "source_feature": "Atypical",
+            "display_name": "Atypical",
+            "clinical_domain": "Symptom"
+        },
+        {
+            "transformed_feature": "bin_str__Nonanginal",
+            "source_feature": "Nonanginal",
+            "display_name": "Nonanginal",
+            "clinical_domain": "Symptom"
+        },
+        {
+            "transformed_feature": "bin_str__LowTH Ang",
+            "source_feature": "LowTH Ang",
+            "display_name": "LowTH Ang",
+            "clinical_domain": "Symptom"
+        },
+        {
+            "transformed_feature": "bin_str__LVH",
+            "source_feature": "LVH",
+            "display_name": "LVH",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "bin_str__Poor R Progression",
+            "source_feature": "Poor R Progression",
+            "display_name": "Poor R Progression",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "sex__Sex",
+            "source_feature": "Sex",
+            "display_name": "Sex",
+            "clinical_domain": "Demographic"
+        },
+        {
+            "transformed_feature": "bbb__BBB_N",
+            "source_feature": "BBB",
+            "display_name": "BBB = N",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "bbb__BBB_LBBB",
+            "source_feature": "BBB",
+            "display_name": "BBB = LBBB",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "bbb__BBB_RBBB",
+            "source_feature": "BBB",
+            "display_name": "BBB = RBBB",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "vhd__VHD_N",
+            "source_feature": "VHD",
+            "display_name": "VHD = N",
+            "clinical_domain": "Echocardiographic"
+        },
+        {
+            "transformed_feature": "vhd__VHD_mild",
+            "source_feature": "VHD",
+            "display_name": "VHD = mild",
+            "clinical_domain": "Echocardiographic"
+        },
+        {
+            "transformed_feature": "vhd__VHD_Moderate",
+            "source_feature": "VHD",
+            "display_name": "VHD = Moderate",
+            "clinical_domain": "Echocardiographic"
+        },
+        {
+            "transformed_feature": "vhd__VHD_Severe",
+            "source_feature": "VHD",
+            "display_name": "VHD = Severe",
+            "clinical_domain": "Echocardiographic"
+        },
+        {
+            "transformed_feature": "bin_num__DM",
+            "source_feature": "DM",
+            "display_name": "DM",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_num__HTN",
+            "source_feature": "HTN",
+            "display_name": "HTN",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_num__Current Smoker",
+            "source_feature": "Current Smoker",
+            "display_name": "Current Smoker",
+            "clinical_domain": "Behavioral"
+        },
+        {
+            "transformed_feature": "bin_num__EX-Smoker",
+            "source_feature": "EX-Smoker",
+            "display_name": "EX-Smoker",
+            "clinical_domain": "Behavioral"
+        },
+        {
+            "transformed_feature": "bin_num__FH",
+            "source_feature": "FH",
+            "display_name": "FH",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_num__Edema",
+            "source_feature": "Edema",
+            "display_name": "Edema",
+            "clinical_domain": "Physical Exam"
+        },
+        {
+            "transformed_feature": "bin_num__Typical Chest Pain",
+            "source_feature": "Typical Chest Pain",
+            "display_name": "Typical Chest Pain",
+            "clinical_domain": "Symptom"
+        },
+        {
+            "transformed_feature": "bin_num__Q Wave",
+            "source_feature": "Q Wave",
+            "display_name": "Q Wave",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "bin_num__St Elevation",
+            "source_feature": "St Elevation",
+            "display_name": "St Elevation",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "bin_num__St Depression",
+            "source_feature": "St Depression",
+            "display_name": "St Depression",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "bin_num__Tinversion",
+            "source_feature": "Tinversion",
+            "display_name": "Tinversion",
+            "clinical_domain": "ECG"
+        }
+    ],
+    "LAD": [
+        {
+            "transformed_feature": "num__Age",
+            "source_feature": "Age",
+            "display_name": "Age",
+            "clinical_domain": "Demographic"
+        },
+        {
+            "transformed_feature": "num__Weight",
+            "source_feature": "Weight",
+            "display_name": "Weight",
+            "clinical_domain": "Demographic"
+        },
+        {
+            "transformed_feature": "num__Length",
+            "source_feature": "Length",
+            "display_name": "Length",
+            "clinical_domain": "Demographic"
+        },
+        {
+            "transformed_feature": "num__BMI",
+            "source_feature": "BMI",
+            "display_name": "BMI",
+            "clinical_domain": "Demographic"
+        },
+        {
+            "transformed_feature": "num__BP",
+            "source_feature": "BP",
+            "display_name": "BP",
+            "clinical_domain": "Vital Signs"
+        },
+        {
+            "transformed_feature": "num__PR",
+            "source_feature": "PR",
+            "display_name": "PR",
+            "clinical_domain": "Vital Signs"
+        },
+        {
+            "transformed_feature": "num__FBS",
+            "source_feature": "FBS",
+            "display_name": "FBS",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__CR",
+            "source_feature": "CR",
+            "display_name": "CR",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__TG",
+            "source_feature": "TG",
+            "display_name": "TG",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__LDL",
+            "source_feature": "LDL",
+            "display_name": "LDL",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__HDL",
+            "source_feature": "HDL",
+            "display_name": "HDL",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__BUN",
+            "source_feature": "BUN",
+            "display_name": "BUN",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__ESR",
+            "source_feature": "ESR",
+            "display_name": "ESR",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__HB",
+            "source_feature": "HB",
+            "display_name": "HB",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__K",
+            "source_feature": "K",
+            "display_name": "K",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__Na",
+            "source_feature": "Na",
+            "display_name": "Na",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__WBC",
+            "source_feature": "WBC",
+            "display_name": "WBC",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__Lymph",
+            "source_feature": "Lymph",
+            "display_name": "Lymph",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__Neut",
+            "source_feature": "Neut",
+            "display_name": "Neut",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__PLT",
+            "source_feature": "PLT",
+            "display_name": "PLT",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__EF-TTE",
+            "source_feature": "EF-TTE",
+            "display_name": "EF-TTE",
+            "clinical_domain": "Echocardiographic"
+        },
+        {
+            "transformed_feature": "num__Function Class",
+            "source_feature": "Function Class",
+            "display_name": "Function Class",
+            "clinical_domain": "Clinical Status"
+        },
+        {
+            "transformed_feature": "num__Region RWMA",
+            "source_feature": "Region RWMA",
+            "display_name": "Region RWMA",
+            "clinical_domain": "Echocardiographic"
+        },
+        {
+            "transformed_feature": "bin_str__Obesity",
+            "source_feature": "Obesity",
+            "display_name": "Obesity",
+            "clinical_domain": "Clinical Status"
+        },
+        {
+            "transformed_feature": "bin_str__CRF",
+            "source_feature": "CRF",
+            "display_name": "CRF",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_str__CVA",
+            "source_feature": "CVA",
+            "display_name": "CVA",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_str__Airway disease",
+            "source_feature": "Airway disease",
+            "display_name": "Airway disease",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_str__Thyroid Disease",
+            "source_feature": "Thyroid Disease",
+            "display_name": "Thyroid Disease",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_str__CHF",
+            "source_feature": "CHF",
+            "display_name": "CHF",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_str__DLP",
+            "source_feature": "DLP",
+            "display_name": "DLP",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_str__Weak Peripheral Pulse",
+            "source_feature": "Weak Peripheral Pulse",
+            "display_name": "Weak Peripheral Pulse",
+            "clinical_domain": "Physical Exam"
+        },
+        {
+            "transformed_feature": "bin_str__Lung rales",
+            "source_feature": "Lung rales",
+            "display_name": "Lung rales",
+            "clinical_domain": "Physical Exam"
+        },
+        {
+            "transformed_feature": "bin_str__Systolic Murmur",
+            "source_feature": "Systolic Murmur",
+            "display_name": "Systolic Murmur",
+            "clinical_domain": "Physical Exam"
+        },
+        {
+            "transformed_feature": "bin_str__Diastolic Murmur",
+            "source_feature": "Diastolic Murmur",
+            "display_name": "Diastolic Murmur",
+            "clinical_domain": "Physical Exam"
+        },
+        {
+            "transformed_feature": "bin_str__Dyspnea",
+            "source_feature": "Dyspnea",
+            "display_name": "Dyspnea",
+            "clinical_domain": "Symptom"
+        },
+        {
+            "transformed_feature": "bin_str__Atypical",
+            "source_feature": "Atypical",
+            "display_name": "Atypical",
+            "clinical_domain": "Symptom"
+        },
+        {
+            "transformed_feature": "bin_str__Nonanginal",
+            "source_feature": "Nonanginal",
+            "display_name": "Nonanginal",
+            "clinical_domain": "Symptom"
+        },
+        {
+            "transformed_feature": "bin_str__LowTH Ang",
+            "source_feature": "LowTH Ang",
+            "display_name": "LowTH Ang",
+            "clinical_domain": "Symptom"
+        },
+        {
+            "transformed_feature": "bin_str__LVH",
+            "source_feature": "LVH",
+            "display_name": "LVH",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "bin_str__Poor R Progression",
+            "source_feature": "Poor R Progression",
+            "display_name": "Poor R Progression",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "sex__Sex",
+            "source_feature": "Sex",
+            "display_name": "Sex",
+            "clinical_domain": "Demographic"
+        },
+        {
+            "transformed_feature": "bbb__BBB_N",
+            "source_feature": "BBB",
+            "display_name": "BBB = N",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "bbb__BBB_LBBB",
+            "source_feature": "BBB",
+            "display_name": "BBB = LBBB",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "bbb__BBB_RBBB",
+            "source_feature": "BBB",
+            "display_name": "BBB = RBBB",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "vhd__VHD",
+            "source_feature": "VHD",
+            "display_name": "VHD",
+            "clinical_domain": "Echocardiographic"
+        },
+        {
+            "transformed_feature": "bin_num__DM",
+            "source_feature": "DM",
+            "display_name": "DM",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_num__HTN",
+            "source_feature": "HTN",
+            "display_name": "HTN",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_num__Current Smoker",
+            "source_feature": "Current Smoker",
+            "display_name": "Current Smoker",
+            "clinical_domain": "Behavioral"
+        },
+        {
+            "transformed_feature": "bin_num__EX-Smoker",
+            "source_feature": "EX-Smoker",
+            "display_name": "EX-Smoker",
+            "clinical_domain": "Behavioral"
+        },
+        {
+            "transformed_feature": "bin_num__FH",
+            "source_feature": "FH",
+            "display_name": "FH",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_num__Edema",
+            "source_feature": "Edema",
+            "display_name": "Edema",
+            "clinical_domain": "Physical Exam"
+        },
+        {
+            "transformed_feature": "bin_num__Typical Chest Pain",
+            "source_feature": "Typical Chest Pain",
+            "display_name": "Typical Chest Pain",
+            "clinical_domain": "Symptom"
+        },
+        {
+            "transformed_feature": "bin_num__Q Wave",
+            "source_feature": "Q Wave",
+            "display_name": "Q Wave",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "bin_num__St Elevation",
+            "source_feature": "St Elevation",
+            "display_name": "St Elevation",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "bin_num__St Depression",
+            "source_feature": "St Depression",
+            "display_name": "St Depression",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "bin_num__Tinversion",
+            "source_feature": "Tinversion",
+            "display_name": "Tinversion",
+            "clinical_domain": "ECG"
+        }
+    ],
+    "LCX": [
+        {
+            "transformed_feature": "num__Age",
+            "source_feature": "Age",
+            "display_name": "Age",
+            "clinical_domain": "Demographic"
+        },
+        {
+            "transformed_feature": "num__Weight",
+            "source_feature": "Weight",
+            "display_name": "Weight",
+            "clinical_domain": "Demographic"
+        },
+        {
+            "transformed_feature": "num__Length",
+            "source_feature": "Length",
+            "display_name": "Length",
+            "clinical_domain": "Demographic"
+        },
+        {
+            "transformed_feature": "num__BMI",
+            "source_feature": "BMI",
+            "display_name": "BMI",
+            "clinical_domain": "Demographic"
+        },
+        {
+            "transformed_feature": "num__BP",
+            "source_feature": "BP",
+            "display_name": "BP",
+            "clinical_domain": "Vital Signs"
+        },
+        {
+            "transformed_feature": "num__PR",
+            "source_feature": "PR",
+            "display_name": "PR",
+            "clinical_domain": "Vital Signs"
+        },
+        {
+            "transformed_feature": "num__FBS",
+            "source_feature": "FBS",
+            "display_name": "FBS",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__CR",
+            "source_feature": "CR",
+            "display_name": "CR",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__TG",
+            "source_feature": "TG",
+            "display_name": "TG",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__LDL",
+            "source_feature": "LDL",
+            "display_name": "LDL",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__HDL",
+            "source_feature": "HDL",
+            "display_name": "HDL",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__BUN",
+            "source_feature": "BUN",
+            "display_name": "BUN",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__ESR",
+            "source_feature": "ESR",
+            "display_name": "ESR",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__HB",
+            "source_feature": "HB",
+            "display_name": "HB",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__K",
+            "source_feature": "K",
+            "display_name": "K",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__Na",
+            "source_feature": "Na",
+            "display_name": "Na",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__WBC",
+            "source_feature": "WBC",
+            "display_name": "WBC",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__Lymph",
+            "source_feature": "Lymph",
+            "display_name": "Lymph",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__Neut",
+            "source_feature": "Neut",
+            "display_name": "Neut",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__PLT",
+            "source_feature": "PLT",
+            "display_name": "PLT",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__EF-TTE",
+            "source_feature": "EF-TTE",
+            "display_name": "EF-TTE",
+            "clinical_domain": "Echocardiographic"
+        },
+        {
+            "transformed_feature": "num__Function Class",
+            "source_feature": "Function Class",
+            "display_name": "Function Class",
+            "clinical_domain": "Clinical Status"
+        },
+        {
+            "transformed_feature": "num__Region RWMA",
+            "source_feature": "Region RWMA",
+            "display_name": "Region RWMA",
+            "clinical_domain": "Echocardiographic"
+        },
+        {
+            "transformed_feature": "bin_str__Obesity",
+            "source_feature": "Obesity",
+            "display_name": "Obesity",
+            "clinical_domain": "Clinical Status"
+        },
+        {
+            "transformed_feature": "bin_str__CRF",
+            "source_feature": "CRF",
+            "display_name": "CRF",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_str__CVA",
+            "source_feature": "CVA",
+            "display_name": "CVA",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_str__Airway disease",
+            "source_feature": "Airway disease",
+            "display_name": "Airway disease",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_str__Thyroid Disease",
+            "source_feature": "Thyroid Disease",
+            "display_name": "Thyroid Disease",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_str__CHF",
+            "source_feature": "CHF",
+            "display_name": "CHF",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_str__DLP",
+            "source_feature": "DLP",
+            "display_name": "DLP",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_str__Weak Peripheral Pulse",
+            "source_feature": "Weak Peripheral Pulse",
+            "display_name": "Weak Peripheral Pulse",
+            "clinical_domain": "Physical Exam"
+        },
+        {
+            "transformed_feature": "bin_str__Lung rales",
+            "source_feature": "Lung rales",
+            "display_name": "Lung rales",
+            "clinical_domain": "Physical Exam"
+        },
+        {
+            "transformed_feature": "bin_str__Systolic Murmur",
+            "source_feature": "Systolic Murmur",
+            "display_name": "Systolic Murmur",
+            "clinical_domain": "Physical Exam"
+        },
+        {
+            "transformed_feature": "bin_str__Diastolic Murmur",
+            "source_feature": "Diastolic Murmur",
+            "display_name": "Diastolic Murmur",
+            "clinical_domain": "Physical Exam"
+        },
+        {
+            "transformed_feature": "bin_str__Dyspnea",
+            "source_feature": "Dyspnea",
+            "display_name": "Dyspnea",
+            "clinical_domain": "Symptom"
+        },
+        {
+            "transformed_feature": "bin_str__Atypical",
+            "source_feature": "Atypical",
+            "display_name": "Atypical",
+            "clinical_domain": "Symptom"
+        },
+        {
+            "transformed_feature": "bin_str__Nonanginal",
+            "source_feature": "Nonanginal",
+            "display_name": "Nonanginal",
+            "clinical_domain": "Symptom"
+        },
+        {
+            "transformed_feature": "bin_str__LowTH Ang",
+            "source_feature": "LowTH Ang",
+            "display_name": "LowTH Ang",
+            "clinical_domain": "Symptom"
+        },
+        {
+            "transformed_feature": "bin_str__LVH",
+            "source_feature": "LVH",
+            "display_name": "LVH",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "bin_str__Poor R Progression",
+            "source_feature": "Poor R Progression",
+            "display_name": "Poor R Progression",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "sex__Sex",
+            "source_feature": "Sex",
+            "display_name": "Sex",
+            "clinical_domain": "Demographic"
+        },
+        {
+            "transformed_feature": "bbb__BBB_N",
+            "source_feature": "BBB",
+            "display_name": "BBB = N",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "bbb__BBB_LBBB",
+            "source_feature": "BBB",
+            "display_name": "BBB = LBBB",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "bbb__BBB_RBBB",
+            "source_feature": "BBB",
+            "display_name": "BBB = RBBB",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "vhd__VHD_N",
+            "source_feature": "VHD",
+            "display_name": "VHD = N",
+            "clinical_domain": "Echocardiographic"
+        },
+        {
+            "transformed_feature": "vhd__VHD_mild",
+            "source_feature": "VHD",
+            "display_name": "VHD = mild",
+            "clinical_domain": "Echocardiographic"
+        },
+        {
+            "transformed_feature": "vhd__VHD_Moderate",
+            "source_feature": "VHD",
+            "display_name": "VHD = Moderate",
+            "clinical_domain": "Echocardiographic"
+        },
+        {
+            "transformed_feature": "vhd__VHD_Severe",
+            "source_feature": "VHD",
+            "display_name": "VHD = Severe",
+            "clinical_domain": "Echocardiographic"
+        },
+        {
+            "transformed_feature": "bin_num__DM",
+            "source_feature": "DM",
+            "display_name": "DM",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_num__HTN",
+            "source_feature": "HTN",
+            "display_name": "HTN",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_num__Current Smoker",
+            "source_feature": "Current Smoker",
+            "display_name": "Current Smoker",
+            "clinical_domain": "Behavioral"
+        },
+        {
+            "transformed_feature": "bin_num__EX-Smoker",
+            "source_feature": "EX-Smoker",
+            "display_name": "EX-Smoker",
+            "clinical_domain": "Behavioral"
+        },
+        {
+            "transformed_feature": "bin_num__FH",
+            "source_feature": "FH",
+            "display_name": "FH",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_num__Edema",
+            "source_feature": "Edema",
+            "display_name": "Edema",
+            "clinical_domain": "Physical Exam"
+        },
+        {
+            "transformed_feature": "bin_num__Typical Chest Pain",
+            "source_feature": "Typical Chest Pain",
+            "display_name": "Typical Chest Pain",
+            "clinical_domain": "Symptom"
+        },
+        {
+            "transformed_feature": "bin_num__Q Wave",
+            "source_feature": "Q Wave",
+            "display_name": "Q Wave",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "bin_num__St Elevation",
+            "source_feature": "St Elevation",
+            "display_name": "St Elevation",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "bin_num__St Depression",
+            "source_feature": "St Depression",
+            "display_name": "St Depression",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "bin_num__Tinversion",
+            "source_feature": "Tinversion",
+            "display_name": "Tinversion",
+            "clinical_domain": "ECG"
+        }
+    ],
+    "RCA": [
+        {
+            "transformed_feature": "num__Age",
+            "source_feature": "Age",
+            "display_name": "Age",
+            "clinical_domain": "Demographic"
+        },
+        {
+            "transformed_feature": "num__Weight",
+            "source_feature": "Weight",
+            "display_name": "Weight",
+            "clinical_domain": "Demographic"
+        },
+        {
+            "transformed_feature": "num__Length",
+            "source_feature": "Length",
+            "display_name": "Length",
+            "clinical_domain": "Demographic"
+        },
+        {
+            "transformed_feature": "num__BMI",
+            "source_feature": "BMI",
+            "display_name": "BMI",
+            "clinical_domain": "Demographic"
+        },
+        {
+            "transformed_feature": "num__BP",
+            "source_feature": "BP",
+            "display_name": "BP",
+            "clinical_domain": "Vital Signs"
+        },
+        {
+            "transformed_feature": "num__PR",
+            "source_feature": "PR",
+            "display_name": "PR",
+            "clinical_domain": "Vital Signs"
+        },
+        {
+            "transformed_feature": "num__FBS",
+            "source_feature": "FBS",
+            "display_name": "FBS",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__CR",
+            "source_feature": "CR",
+            "display_name": "CR",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__TG",
+            "source_feature": "TG",
+            "display_name": "TG",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__LDL",
+            "source_feature": "LDL",
+            "display_name": "LDL",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__HDL",
+            "source_feature": "HDL",
+            "display_name": "HDL",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__BUN",
+            "source_feature": "BUN",
+            "display_name": "BUN",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__ESR",
+            "source_feature": "ESR",
+            "display_name": "ESR",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__HB",
+            "source_feature": "HB",
+            "display_name": "HB",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__K",
+            "source_feature": "K",
+            "display_name": "K",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__Na",
+            "source_feature": "Na",
+            "display_name": "Na",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__WBC",
+            "source_feature": "WBC",
+            "display_name": "WBC",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__Lymph",
+            "source_feature": "Lymph",
+            "display_name": "Lymph",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__Neut",
+            "source_feature": "Neut",
+            "display_name": "Neut",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__PLT",
+            "source_feature": "PLT",
+            "display_name": "PLT",
+            "clinical_domain": "Laboratory"
+        },
+        {
+            "transformed_feature": "num__EF-TTE",
+            "source_feature": "EF-TTE",
+            "display_name": "EF-TTE",
+            "clinical_domain": "Echocardiographic"
+        },
+        {
+            "transformed_feature": "num__Function Class",
+            "source_feature": "Function Class",
+            "display_name": "Function Class",
+            "clinical_domain": "Clinical Status"
+        },
+        {
+            "transformed_feature": "num__Region RWMA",
+            "source_feature": "Region RWMA",
+            "display_name": "Region RWMA",
+            "clinical_domain": "Echocardiographic"
+        },
+        {
+            "transformed_feature": "bin_str__Obesity",
+            "source_feature": "Obesity",
+            "display_name": "Obesity",
+            "clinical_domain": "Clinical Status"
+        },
+        {
+            "transformed_feature": "bin_str__CRF",
+            "source_feature": "CRF",
+            "display_name": "CRF",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_str__CVA",
+            "source_feature": "CVA",
+            "display_name": "CVA",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_str__Airway disease",
+            "source_feature": "Airway disease",
+            "display_name": "Airway disease",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_str__Thyroid Disease",
+            "source_feature": "Thyroid Disease",
+            "display_name": "Thyroid Disease",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_str__CHF",
+            "source_feature": "CHF",
+            "display_name": "CHF",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_str__DLP",
+            "source_feature": "DLP",
+            "display_name": "DLP",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_str__Weak Peripheral Pulse",
+            "source_feature": "Weak Peripheral Pulse",
+            "display_name": "Weak Peripheral Pulse",
+            "clinical_domain": "Physical Exam"
+        },
+        {
+            "transformed_feature": "bin_str__Lung rales",
+            "source_feature": "Lung rales",
+            "display_name": "Lung rales",
+            "clinical_domain": "Physical Exam"
+        },
+        {
+            "transformed_feature": "bin_str__Systolic Murmur",
+            "source_feature": "Systolic Murmur",
+            "display_name": "Systolic Murmur",
+            "clinical_domain": "Physical Exam"
+        },
+        {
+            "transformed_feature": "bin_str__Diastolic Murmur",
+            "source_feature": "Diastolic Murmur",
+            "display_name": "Diastolic Murmur",
+            "clinical_domain": "Physical Exam"
+        },
+        {
+            "transformed_feature": "bin_str__Dyspnea",
+            "source_feature": "Dyspnea",
+            "display_name": "Dyspnea",
+            "clinical_domain": "Symptom"
+        },
+        {
+            "transformed_feature": "bin_str__Atypical",
+            "source_feature": "Atypical",
+            "display_name": "Atypical",
+            "clinical_domain": "Symptom"
+        },
+        {
+            "transformed_feature": "bin_str__Nonanginal",
+            "source_feature": "Nonanginal",
+            "display_name": "Nonanginal",
+            "clinical_domain": "Symptom"
+        },
+        {
+            "transformed_feature": "bin_str__LowTH Ang",
+            "source_feature": "LowTH Ang",
+            "display_name": "LowTH Ang",
+            "clinical_domain": "Symptom"
+        },
+        {
+            "transformed_feature": "bin_str__LVH",
+            "source_feature": "LVH",
+            "display_name": "LVH",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "bin_str__Poor R Progression",
+            "source_feature": "Poor R Progression",
+            "display_name": "Poor R Progression",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "sex__Sex",
+            "source_feature": "Sex",
+            "display_name": "Sex",
+            "clinical_domain": "Demographic"
+        },
+        {
+            "transformed_feature": "bbb__BBB_N",
+            "source_feature": "BBB",
+            "display_name": "BBB = N",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "bbb__BBB_LBBB",
+            "source_feature": "BBB",
+            "display_name": "BBB = LBBB",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "bbb__BBB_RBBB",
+            "source_feature": "BBB",
+            "display_name": "BBB = RBBB",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "vhd__VHD_N",
+            "source_feature": "VHD",
+            "display_name": "VHD = N",
+            "clinical_domain": "Echocardiographic"
+        },
+        {
+            "transformed_feature": "vhd__VHD_mild",
+            "source_feature": "VHD",
+            "display_name": "VHD = mild",
+            "clinical_domain": "Echocardiographic"
+        },
+        {
+            "transformed_feature": "vhd__VHD_Moderate",
+            "source_feature": "VHD",
+            "display_name": "VHD = Moderate",
+            "clinical_domain": "Echocardiographic"
+        },
+        {
+            "transformed_feature": "vhd__VHD_Severe",
+            "source_feature": "VHD",
+            "display_name": "VHD = Severe",
+            "clinical_domain": "Echocardiographic"
+        },
+        {
+            "transformed_feature": "bin_num__DM",
+            "source_feature": "DM",
+            "display_name": "DM",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_num__HTN",
+            "source_feature": "HTN",
+            "display_name": "HTN",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_num__Current Smoker",
+            "source_feature": "Current Smoker",
+            "display_name": "Current Smoker",
+            "clinical_domain": "Behavioral"
+        },
+        {
+            "transformed_feature": "bin_num__EX-Smoker",
+            "source_feature": "EX-Smoker",
+            "display_name": "EX-Smoker",
+            "clinical_domain": "Behavioral"
+        },
+        {
+            "transformed_feature": "bin_num__FH",
+            "source_feature": "FH",
+            "display_name": "FH",
+            "clinical_domain": "Clinical History"
+        },
+        {
+            "transformed_feature": "bin_num__Edema",
+            "source_feature": "Edema",
+            "display_name": "Edema",
+            "clinical_domain": "Physical Exam"
+        },
+        {
+            "transformed_feature": "bin_num__Typical Chest Pain",
+            "source_feature": "Typical Chest Pain",
+            "display_name": "Typical Chest Pain",
+            "clinical_domain": "Symptom"
+        },
+        {
+            "transformed_feature": "bin_num__Q Wave",
+            "source_feature": "Q Wave",
+            "display_name": "Q Wave",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "bin_num__St Elevation",
+            "source_feature": "St Elevation",
+            "display_name": "St Elevation",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "bin_num__St Depression",
+            "source_feature": "St Depression",
+            "display_name": "St Depression",
+            "clinical_domain": "ECG"
+        },
+        {
+            "transformed_feature": "bin_num__Tinversion",
+            "source_feature": "Tinversion",
+            "display_name": "Tinversion",
+            "clinical_domain": "ECG"
+        }
+    ]
+}

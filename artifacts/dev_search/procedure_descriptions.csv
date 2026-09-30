@@ -1,0 +1,11 @@
+,description
+S0_shipped@0.50,"Frozen v1 champion, uncalibrated, threshold 0.50 (what Notebook 6 evaluated)"
+S0c_champion+Platt,Frozen v1 champion + Platt calibration + pre-declared threshold rule (v1.1)
+S1_best_single,Candidate with the best inner-CV AUC
+S2_top3_mean,"Mean of the top-3 calibrated candidates (inner AUC), re-calibrated"
+S3_top5_mean,"Mean of the top-5 calibrated candidates, re-calibrated"
+S4_all_mean,"Mean of all calibrated candidates, re-calibrated"
+S5_stacking,L2 logistic meta-learner on calibrated candidate logits
+S6_greedy_ensemble,Greedy forward ensemble selection with replacement (inner AUC)
+S7_fixed_trio,"Pre-declared mean of LR(C=0.1) + RF + shallow XGBoost, re-calibrated"
+S8_champion+DF,Frozen champion configuration + Diamond-Forrester pre-test feature + Platt

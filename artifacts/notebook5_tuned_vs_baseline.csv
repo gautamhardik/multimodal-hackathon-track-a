@@ -1,0 +1,8 @@
+Target,Model,Preprocessing,Untuned ROC-AUC,Tuned ROC-AUC,Delta ROC-AUC,Untuned F1,Tuned F1,Delta F1,Untuned Recall,Tuned Recall,Delta Recall
+Cath,RandomForest,Config_B_OneHot,0.932,0.926,-0.006,0.912,0.906,-0.005,0.947,0.925,-0.022
+Cath,XGBoost,Config_B_OneHot,0.925,0.927,0.003,0.914,0.913,-0.001,0.936,0.93,-0.006
+LAD,RandomForest,Config_A_Ordinal,0.854,0.856,0.002,0.845,0.832,-0.013,0.899,0.894,-0.005
+LCX,RandomForest,Config_B_OneHot,0.745,0.75,0.005,0.501,0.49,-0.012,0.412,0.417,0.005
+LCX,XGBoost,Config_B_OneHot,0.75,0.725,-0.025,0.549,0.518,-0.031,0.515,0.481,-0.034
+RCA,LogisticRegression,Config_A_Ordinal,0.719,0.699,-0.019,0.546,0.519,-0.026,0.518,0.48,-0.038
+RCA,RandomForest,Config_B_OneHot,0.7,0.703,0.003,0.446,0.418,-0.028,0.366,0.349,-0.017
