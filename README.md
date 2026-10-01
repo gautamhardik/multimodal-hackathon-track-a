@@ -6,7 +6,7 @@ vessel-specific probabilities with exact SHAP explanations, visualised on an int
 
 > **Decision support / education only.** Not a medical device, and not a substitute for clinical assessment or diagnostic imaging.
 
-**Status:** the ML pipeline (Notebooks 1–8), inference API, landing page, anatomical 3D viewer and clinical dashboard are complete. The 6-page project documentation is [`docs/Project_Documentation.pdf`](docs/Project_Documentation.pdf) (source: `docs/project_documentation.html`, rebuilt with `python docs/build_pdf.py [video_url]`). The demo video is published separately.
+**Status:** the ML pipeline (Notebooks 1–8), inference API, landing page, anatomical 3D viewer and clinical dashboard are complete. The 6-page project documentation is [`docs/Project_Documentation.pdf`](docs/Project_Documentation.pdf) (source: `docs/project_documentation.html`, rebuilt with `python docs/build_pdf.py [video_url]`). The demo video is available on [YouTube](https://youtu.be/r0koyhQuqb0) (local copy: [`demo-video/coronary-risk-explorer-demo.mp4`](demo-video/coronary-risk-explorer-demo.mp4)).
 
 ## Repository layout
 
@@ -25,6 +25,8 @@ vessel-specific probabilities with exact SHAP explanations, visualised on an int
 | `frontend/assets/anatomy/` | `heart.glb`, `thorax.glb`: anatomical meshes derived from BodyParts3D (CC BY 4.0) |
 | `tools/build_anatomy.py` | Rebuilds the `.glb` files from BodyParts3D (fetches only the ~7 MB of parts it needs) |
 | `artifacts/` | Frozen pipelines, SHAP artifacts, evaluation tables, v1.1 post-processing, figures |
+| `demo-video/` | Demonstration video (`coronary-risk-explorer-demo.mp4` / [YouTube](https://youtu.be/r0koyhQuqb0)) |
+| `docs/` | 6-page project documentation (`Project_Documentation.pdf`, build script, source HTML) |
 
 ## Quick start
 
