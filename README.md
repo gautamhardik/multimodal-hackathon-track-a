@@ -6,6 +6,10 @@ vessel-specific probabilities with exact SHAP explanations, visualised on an int
 
 > **Decision support / education only.** Not a medical device, and not a substitute for clinical assessment or diagnostic imaging.
 
+<p align="center">
+  <img src="docs/img/explorer.jpg" alt="Coronary Risk Explorer Overview" width="95%">
+</p>
+
 **Status:** the ML pipeline (Notebooks 1–8), inference API, landing page, anatomical 3D viewer and clinical dashboard are complete. The 6-page project documentation is [`docs/Project_Documentation.pdf`](docs/Project_Documentation.pdf) (source: `docs/project_documentation.html`, rebuilt with `python docs/build_pdf.py [video_url]`). The demo video is available on [YouTube](https://youtu.be/r0koyhQuqb0) (local copy: [`demo-video/coronary-risk-explorer-demo.mp4`](demo-video/coronary-risk-explorer-demo.mp4)).
 
 ## Repository layout
@@ -104,6 +108,12 @@ Operating-threshold rules were declared before running: for **Cath**, the highes
 | F1 | 0.903 → 0.900 | 0.835 → 0.816 | 0.459 → 0.617 | 0.316 → 0.597 |
 | Operating threshold (calibrated) | 0.50 → 0.562 | 0.50 → 0.549 | 0.50 → 0.374 | 0.50 → 0.372 |
 
+<p align="center">
+  <img src="artifacts/figures/notebook7/reliability_v1_vs_v1_1.png" alt="Reliability before and after Platt calibration" width="85%">
+  <br>
+  <em>Figure: Calibration curves before (v1) and after (v1.1) Platt scaling across development folds.</em>
+</p>
+
 ### How much better can the models get? (development nested CV, ~30 candidates × 10 procedures)
 All selection, weighting and calibration happens inside the inner loop. The comparison is paired on 25 identical outer folds, using the Nadeau–Bengio corrected t-test.
 
@@ -176,6 +186,10 @@ Notebook 8 reproduces the v1.1 fold AUCs of Notebook 7 exactly before computing 
 - Colours ease to their new values whenever a prediction changes.
 - The ramp's OKLab lightness decreases monotonically, so order survives colour-vision deficiency. Every vessel carries a dark outline so pale (low-probability) vessels stay visible.
 
+| Artery Focus Mode (LAD territory & camera tracking) | Thoracic Skeleton & Chest Registration |
+| :---: | :---: |
+| <img src="docs/img/focus_lad.jpg" alt="LAD Focus Mode" width="100%"> | <img src="docs/img/chest.jpg" alt="Thorax Chest View" width="100%"> |
+
 **Dashboard:**
 - **Patient inputs:** grouped inputs with units. BMI and obesity are derived, and chest-pain classes use a single control. Example patients come from the development cohort, with outcomes never shown. Predictions update live, with validation messages next to each field.
 - **Navigation:** the inputs panel has a search box and section chips, which show counts of findings present or out of range. One section is open at a time. The results panel pins a summary strip (CAD · LAD · LCX · RCA, with flagged estimates ringed) above its tabs: Results / Threshold / Explain / Evidence.
@@ -235,6 +249,12 @@ python tools/build_anatomy.py
 - **Units:** native values are log-odds for `Cath` (XGBoost) and probability for the vessel Random Forests.
 - **Interpretation:** attributions describe model associations, not causes.
 - **Global importance** per target is served by `/global-importance`.
+
+<p align="center">
+  <img src="docs/img/explain_top.png" alt="Real-time clinical SHAP explanation breakdown" width="65%">
+  <br>
+  <em>Figure: Real-time patient-level SHAP explanation breakdown by clinical domain and physiological factor.</em>
+</p>
 
 ## API
 
