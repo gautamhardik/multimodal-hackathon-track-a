@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Coronary Risk Explorer: Project Documentation</title>
+<style>
+  @font-face { font-family: Geist; src: url("../frontend/vendor/fonts/Geist-normal-latin.woff2") format("woff2"); font-weight: 100 900; }
+  @font-face { font-family: "Instrument Serif"; font-style: italic; src: url("../frontend/vendor/fonts/InstrumentSerif-italic-latin.woff2") format("woff2"); }
+  @page { size: A4; margin: 13mm 14mm 14mm; }
+  :root { --ink: #1b1716; --ink2: #514846; --ink3: #7d7270; --line: #e4dcd8; --accent: #c8452c; --soft: #faf6f4; }
+  * { box-sizing: border-box; }
+  html { font-family: Geist, "Segoe UI", system-ui, sans-serif; font-size: 9.2pt; line-height: 1.42; color: var(--ink); background: #fff; }
+  body { margin: 0; }
+  h1 { font-size: 21pt; line-height: 1.05; letter-spacing: -0.03em; margin: 0 0 3pt; font-weight: 650; }
+  h1 em, h2 em { font-family: "Instrument Serif", Georgia, serif; font-weight: 400; color: var(--accent); letter-spacing: 0; }
+  h2 { font-size: 12.5pt; letter-spacing: -0.015em; margin: 11pt 0 4pt; font-weight: 650; break-after: avoid; }
+  h2 .n { color: var(--accent); margin-right: 5pt; }
+  h3 { font-size: 9.6pt; margin: 7pt 0 2pt; font-weight: 650; break-after: avoid; }
+  p { margin: 0 0 5pt; }
+  ul { margin: 0 0 5pt; padding-left: 13pt; }
+  li { margin: 0 0 1.5pt; }
+  code { font-family: Consolas, "Cascadia Mono", monospace; font-size: 8.4pt; background: var(--soft); padding: 0 2pt; border-radius: 2pt; }
+  pre { font-family: Consolas, "Cascadia Mono", monospace; font-size: 8.2pt; background: var(--soft); border: 1px solid var(--line); border-radius: 4pt; padding: 5pt 7pt; margin: 3pt 0 6pt; white-space: pre-wrap; }
+  a { color: var(--accent); text-decoration: none; }
+  .meta { color: var(--ink2); font-size: 8.8pt; margin-bottom: 7pt; }
+  .meta b { color: var(--ink); font-weight: 600; }
+  .disc { border: 1px solid var(--line); border-left: 3pt solid var(--ink3); background: var(--soft); padding: 4pt 7pt; border-radius: 3pt; font-size: 8.6pt; color: var(--ink2); margin: 0 0 7pt; }
+  .disc b { color: var(--ink); }
+  table { width: 100%; border-collapse: collapse; margin: 3pt 0 6pt; font-size: 8.3pt; font-variant-numeric: tabular-nums; break-inside: avoid; }
+  th, td { padding: 2.2pt 4pt; text-align: right; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th:first-child, td:first-child { text-align: left; }
+  thead th { font-weight: 600; color: var(--ink2); border-bottom: 1.2px solid var(--ink3); }
+  td.l, th.l { text-align: left; }
+  .cap { font-size: 7.9pt; color: var(--ink3); margin: -2pt 0 7pt; }
+  figure { margin: 4pt 0 7pt; break-inside: avoid; }
+  figure img { width: 100%; display: block; border-radius: 4pt; border: 1px solid var(--line); }
+  figcaption { font-size: 7.9pt; color: var(--ink3); margin-top: 2.5pt; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 9pt; }
+  .two > * { min-width: 0; }
+  .grid-fig { display: grid; grid-template-columns: 1fr 1fr; gap: 6pt; }
+  .side { display: grid; grid-template-columns: 1.55fr 1fr; gap: 10pt; align-items: start; }
+  .kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6pt; margin: 4pt 0 8pt; }
+  .kpi { border: 1px solid var(--line); border-radius: 4pt; padding: 5pt 7pt; }
+  .kpi b { display: block; font-size: 15pt; font-weight: 600; letter-spacing: -0.03em; line-height: 1.1; }
+  .kpi span { font-size: 7.8pt; color: var(--ink2); }
+  .arch { width: 100%; margin: 3pt 0 4pt; }
+  td code { white-space: nowrap; }
+  pre, .keep { break-inside: avoid; }
+  table.flow { break-inside: auto; }
+  table.flow tr { break-inside: avoid; }
+  .kpi span { display: block; }
+  .muted { color: var(--ink3); }
+</style>
+</head>
+<body>
+
+<h1>Coronary Risk Explorer: <em>Project Documentation</em></h1>
+<div class="meta">Multimodal AI Hackathon 2026 · Track A: Cardiovascular Risk Visualization &amp; Prediction · <b>Hardik Gautam</b><br>
+Code: <a href="https://github.com/gautamhardik/multimodal-hackathon-track-a">github.com/gautamhardik/multimodal-hackathon-track-a</a> · Demo video: <span id="video-link">link in the submission form</span></div>
+
+<div class="disc"><b>Clinical safety.</b> Decision support and education only. Not a medical device, and not a substitute for clinical assessment or diagnostic imaging (coronary angiography). This notice is visible on every screen of the app.</div>
+
+<h2><span class="n">1</span>Overview</h2>
+<p>Coronary Risk Explorer predicts <b>overall coronary artery disease</b> (CAD, the dataset's <code>Cath</code> label) and <b>≥ 50% stenosis of the LAD, LCX and RCA</b> from 54 routine variables of one clinic visit: demographics, history, symptoms and examination, ECG, laboratory tests and echocardiography. Each estimate is calibrated, explained with exact SHAP values, and painted onto the matching coronary artery of a real anatomical 3D heart that users can rotate, zoom and select. The whole system is one web application with a FastAPI model service; inputs re-score in about 60 ms, so the heart and the explanations update while the user types.</p>
+
+<div class="kpis">
+  <div class="kpi"><b>0.85</b><span>Overall CAD ROC-AUC on a sealed 61-patient holdout, tested once [95% CI 0.74–0.94]</span></div>
+  <div class="kpi"><b>0.79 · 0.73 · 0.70</b><span>LAD · LCX · RCA holdout ROC-AUC</span></div>
+  <div class="kpi"><b>~60 ms</b><span>per prediction including exact SHAP for all four models</span></div>
+  <div class="kpi"><b>1.7 ms</b><span>GPU time per 3D frame on integrated graphics (Intel Arc), all effects on</span></div>
+</div>
+
+<figure><img src="img/explorer.jpg" alt="Explorer: patient inputs, 3D heart, results"><figcaption><b>Figure 1.</b> The explorer. Left: patient inputs grouped by clinical section. Centre: the BodyParts3D heart, each artery coloured by its calibrated probability on one fixed 0–100% scale. Right: summary of all four estimates, decision flags and per-artery cards (example patient from the development cohort; outcome hidden).</figcaption></figure>
+
+<h3>How the brief's requirements are met</h3>
+<table class="flow">
+  <thead><tr><th class="l" style="width:24%">Requirement</th><th class="l">Implementation</th></tr></thead>
+  <tbody>
+    <tr><td>1 Predictive modelling</td><td class="l">Four classifiers (Cath, LAD, LCX, RCA) on demographic, examination, ECG, laboratory and echo features; LAD/LCX/RCA/Cath are never inputs (schema rejects them); accuracy, precision, recall, F1, ROC-AUC, PR-AUC, Brier and MCC reported with 95% CIs (§3).</td></tr>
+    <tr><td>2 3D visual mapping</td><td class="l">Three.js/WebGL heart and thorax from BodyParts3D; each artery system recoloured live from its predicted probability; rotate, zoom, pan, camera presets, click/hover/keyboard selection with a focus mode (§4).</td></tr>
+    <tr><td>3 Clinical dashboard</td><td class="l">Overall CAD and vessel probabilities beside the canvas; SHAP breakdown per target; every measurement shown with its value, typical range and share of the attribution; decision-threshold explorer; model evidence (§4).</td></tr>
+    <tr><td>4 3D models</td><td class="l">Open-source BodyParts3D meshes (CC BY 4.0), converted to <code>.glb</code> by a reproducible script (§4).</td></tr>
+    <tr><td>5 Safety disclaimer</td><td class="l">Always-visible banner in the explorer, in the landing hero and footer; the canvas states it shows reference anatomy, not the patient.</td></tr>
+  </tbody>
+</table>
+
+<h2><span class="n">2</span>Data and preprocessing</h2>
+<div class="two">
+<div>
+<p><b>Dataset.</b> UCI <i>Extension of Z-Alizadeh Sani</i>: 303 patients referred for angiography at one centre; 59 columns. Targets: <code>Cath</code> (CAD prevalence 71%), and stenosis of LAD, LCX and RCA (stenotic = 1, normal = 0).</p>
+<p><b>Audit (Notebook 1).</b> No missing values, no exact or conflicting duplicate patients, no physiologically implausible values. One constant column (<code>Exertional CP</code>, all "N") was dropped, leaving <b>54 input features</b>. A typo in <code>Sex</code> ("Fmale") was corrected. Strong collinearity (Neut–Lymph r = −0.92) was kept, since tree models tolerate it. A leakage audit confirmed that only the four target columns carry outcome information.</p>
+</div>
+<div>
+<p><b>Encoding (Notebook 2).</b> Binary string fields → 0/1; <code>BBB</code> (N/LBBB/RBBB) one-hot; numeric fields passed through for trees and standardised for linear models and SVMs. Valvular heart disease (<code>VHD</code>) was tested two ways: <b>Config A</b> ordinal (N &lt; mild &lt; moderate &lt; severe; 56 transformed features) and <b>Config B</b> one-hot (59 features); the choice was made per target on development CV.</p>
+<p><b>Leakage control.</b> Every transformer lives inside an sklearn <code>Pipeline</code>, so it is fitted only on the training part of each fold. BMI and obesity are derived from weight and height at prediction time, exactly as in the data.</p>
+</div>
+</div>
+
+<h3>Validation design</h3>
+<ul>
+  <li><b>Split:</b> 242 development / 61 holdout patients (stratified on <code>Cath</code>, seed 42). The holdout indices are written to <code>preprocessing_config.json</code> and the holdout stayed sealed until Notebook 6, where the frozen models were scored <b>exactly once</b>. No model, feature, hyperparameter or threshold decision used it.</li>
+  <li><b>Development CV:</b> repeated stratified 5-fold × 5 repeats (25 folds), stratified separately for each target.</li>
+  <li><b>Tuning:</b> nested CV (outer 5 × 3, inner 3 × 2) with Optuna TPE, 10 trials per outer fold, so reported development scores are not tuned on the folds they are measured on.</li>
+  <li><b>After the holdout</b> (Notebooks 7–8): development data only, nested CV. Calibration is monotone, so the holdout ROC-AUC and PR-AUC still describe the served models.</li>
+</ul>
+
+<h2><span class="n">3</span>Models and evaluation</h2>
+<h3>Model selection</h3>
+<p>Logistic regression, linear and RBF SVMs, random forest, XGBoost and LightGBM were compared for every target under the same 25 folds and both encodings (Notebooks 3–4). The strongest candidates were tuned in nested CV (Notebook 5) and frozen:</p>
+<table>
+  <thead><tr><th>Target</th><th class="l">Model</th><th class="l">Encoding</th><th class="l">Key hyperparameters</th><th>Dev nested-CV ROC-AUC</th></tr></thead>
+  <tbody>
+    <tr><td>Cath</td><td class="l">XGBoost</td><td class="l">B one-hot</td><td class="l">300 trees, depth 4, learning rate 0.027, subsample 0.95</td><td>0.927 ± 0.046</td></tr>
+    <tr><td>LAD</td><td class="l">Random forest</td><td class="l">A ordinal</td><td class="l">450 trees, depth 7, min leaf 2, balanced class weights</td><td>0.856 ± 0.050</td></tr>
+    <tr><td>LCX</td><td class="l">Random forest</td><td class="l">B one-hot</td><td class="l">200 trees, min leaf 4, max features log2</td><td>0.750 ± 0.058</td></tr>
+    <tr><td>RCA</td><td class="l">Random forest</td><td class="l">B one-hot</td><td class="l">150 trees, depth 3, max features log2</td><td>0.703 ± 0.047</td></tr>
+  </tbody>
+</table>
+<p>Tree ensembles were preferred over a slightly better-scoring average of many models because they support <b>exact, real-time SHAP</b> (§4). The served version <b>v1.1</b> adds Platt calibration fitted on the development out-of-fold predictions and pre-declared operating thresholds: for Cath the highest threshold keeping development sensitivity ≥ 0.90 (rule-out safety), for the vessels Youden's J. Each pipeline's SHA-256 is checked against the release manifest when the service starts.</p>
+
+<h3>One-time holdout results (frozen models, N = 61, threshold 0.50)</h3>
+<table>
+  <thead><tr><th>Metric</th><th>Cath (overall CAD)</th><th>LAD</th><th>LCX</th><th>RCA</th></tr></thead>
+  <tbody>
+    <tr><td><b>ROC-AUC</b></td><td><b>0.854</b> [0.74–0.94]</td><td><b>0.794</b> [0.67–0.90]</td><td><b>0.730</b> [0.59–0.85]</td><td><b>0.701</b> [0.56–0.83]</td></tr>
+    <tr><td>PR-AUC (AP)</td><td>0.932 [0.88–0.98]</td><td>0.827 [0.73–0.92]</td><td>0.626 [0.51–0.81]</td><td>0.513 [0.38–0.70]</td></tr>
+    <tr><td>Accuracy</td><td>0.820 [0.74–0.90]</td><td>0.738 [0.64–0.84]</td><td>0.672 [0.57–0.77]</td><td>0.672 [0.61–0.74]</td></tr>
+    <tr><td>Precision (PPV)</td><td>0.820 [0.76–0.89]</td><td>0.725 [0.64–0.83]</td><td>0.750 [0.50–1.00]</td><td>0.500 [0.00–1.00]</td></tr>
+    <tr><td>Recall (sensitivity)</td><td>0.954 [0.88–1.00]</td><td>0.853 [0.73–0.97]</td><td>0.346 [0.19–0.54]</td><td>0.100 [0.00–0.25]</td></tr>
+    <tr><td>Specificity</td><td>0.500 [0.28–0.72]</td><td>0.593 [0.41–0.78]</td><td>0.914 [0.83–1.00]</td><td>0.951 [0.88–1.00]</td></tr>
+    <tr><td>F1</td><td>0.882 [0.83–0.93]</td><td>0.784 [0.70–0.87]</td><td>0.474 [0.27–0.65]</td><td>0.167 [0.00–0.39]</td></tr>
+    <tr><td>MCC</td><td>0.538 [0.30–0.76]</td><td>0.466 [0.26–0.68]</td><td>0.324 [0.08–0.54]</td><td>0.097 [−0.16–0.36]</td></tr>
+    <tr><td>Brier</td><td>0.139 [0.09–0.19]</td><td>0.185 [0.15–0.22]</td><td>0.215 [0.19–0.24]</td><td>0.206 [0.19–0.22]</td></tr>
+  </tbody>
+</table>
+<p class="cap">95% CIs: 2,000 stratified bootstrap resamples, a declared post-hoc description of the same one-time predictions. Positives/negatives: Cath 43/18, LAD 34/27, LCX 26/35, RCA 20/41.</p>
+<p>Ranking quality (ROC-AUC) holds up from development to holdout, within the interval width for N = 61. At the naive 0.50 threshold LCX and RCA rarely flag, because their uncalibrated forests are over-cautious; this is what the v1.1 calibration and thresholds correct:</p>
+
+<table>
+  <thead><tr><th>Served v1.1 (development nested CV, 25 folds)</th><th>Cath</th><th>LAD</th><th>LCX</th><th>RCA</th></tr></thead>
+  <tbody>
+    <tr><td>Operating threshold (calibrated probability)</td><td>0.562</td><td>0.549</td><td>0.374</td><td>0.372</td></tr>
+    <tr><td>Sensitivity / specificity</td><td>0.904 / 0.739</td><td>0.818 / 0.731</td><td>0.701 / 0.643</td><td>0.698 / 0.592</td></tr>
+    <tr><td>F1 · balanced accuracy</td><td>0.900 · 0.822</td><td>0.816 · 0.775</td><td>0.617 · 0.672</td><td>0.597 · 0.645</td></tr>
+    <tr><td>Calibration slope (ideal 1): v1 → v1.1</td><td>1.21 → 0.97</td><td>1.89 → 0.95</td><td>1.86 → 0.96</td><td>2.27 → 1.03</td></tr>
+    <tr><td>Brier: v1 → v1.1</td><td>0.096 → 0.096</td><td>0.162 → 0.151</td><td>0.204 → 0.199</td><td>0.214 → 0.207</td></tr>
+  </tbody>
+</table>
+
+<div class="side">
+<figure><img src="../artifacts/figures/notebook7/reliability_v1_vs_v1_1.png" alt="Reliability curves"><figcaption><b>Figure 2.</b> Reliability before (v1) and after (v1.1) Platt calibration, development out-of-fold predictions: "70%" now means about 7 in 10 similar patients.</figcaption></figure>
+<div>
+<h3>Can the models get better?</h3>
+<p>A development-only search of ~30 candidates (ensembles, stacking, MLP, TabPFN v2 transformer), paired on the same 25 folds with a corrected t-test, found at most +0.01–0.02 ROC-AUC, none of it statistically significant. With 242 development patients, <b>data, not modelling, is the limit</b>; the interpretable shipped models were kept.</p>
+</div>
+</div>
+
+<h2><span class="n">4</span>Explainability, dashboard and 3D pipeline</h2>
+<div class="side">
+<div>
+<h3>Explanations (requirement 3b–c)</h3>
+<ul>
+  <li><b>Exact SHAP</b> per request (<code>shap.TreeExplainer</code> on the served pipelines), aggregated from transformed columns back to the 54 clinical inputs.</li>
+  <li>Each attribution carries the patient's <b>raw value</b>, its clinical domain, and its <b>share of the total |SHAP|</b>, so magnitudes are comparable across log-odds (XGBoost) and probability (forest) units.</li>
+  <li>The Explain tab shows a one-sentence summary ("mainly raised by…; lowered by…"), a diverging raise/lower chart, contribution by clinical domain, and a sortable physiological table of every measurement with its value, typical adult range and share. Hovering a bar highlights that input on the form.</li>
+  <li>Global importance per target and the observed stenosis rate per probability band are served by the API and shown in the Evidence tab.</li>
+  <li>Attributions describe model associations, not causes; the UI says so.</li>
+</ul>
+<h3>Dashboard workflow</h3>
+<ul>
+  <li><b>Inputs:</b> sections with units and search; chips count abnormal findings; chest pain is a single choice and BMI is derived, so contradictory inputs are impossible. Impossible values are rejected with a message; unusual ones are accepted with a warning.</li>
+  <li><b>Live what-if:</b> every edit re-scores; summary chips show how far each estimate moved (e.g. EF 40 → 60%: overall CAD ▼ 14 points).</li>
+  <li><b>Threshold tab:</b> presets and a slider move along the development ROC curve; sensitivity, specificity, PPV and NPV update live. Only the flag changes, never the probability.</li>
+  <li><b>Consistency:</b> a note appears when a vessel estimate exceeds the overall CAD estimate (the four models are independent).</li>
+</ul>
+</div>
+<figure><img src="img/explain_top.png" alt="Explain tab"><figcaption><b>Figure 3.</b> Explain tab for the same patient: why overall CAD is estimated at 95%.</figcaption></figure>
+</div>
+
+<h3>3D pipeline (requirements 2 and 4)</h3>
+<div class="grid-fig">
+<figure><img src="img/focus_lad.jpg" alt="Focus on LAD"><figcaption><b>Figure 4.</b> Focus mode: selecting the LAD (98%) flies the camera to it, dims the others and names the territory it supplies.</figcaption></figure>
+<figure><img src="img/chest.jpg" alt="Chest view"><figcaption><b>Figure 5.</b> Chest view: the heart in its true position inside the BodyParts3D rib cage, sternum and spine.</figcaption></figure>
+</div>
+<ul>
+  <li><b>Source anatomy:</b> BodyParts3D (DBCLS, CC BY 4.0, FMA-based). <code>tools/build_anatomy.py</code> range-fetches only the ~7 MB of parts it needs from the official archive, crops, simplifies, groups by FMA concept and writes <code>heart.glb</code> (2.0 MB) and <code>thorax.glb</code> (2.5 MB, loaded only for the chest view).</li>
+  <li><b>Target ↔ mesh correspondence:</b> each model target maps to one mesh group named <code>vessel_&lt;TARGET&gt;</code>: LAD = anterior interventricular branch with diagonal and conus branches; LCX = circumflex branch; RCA = trunk, marginal and posterior interventricular branches. The left main and great vessels stay grey ("not modelled").</li>
+  <li><b>Muscle surface:</b> BodyParts3D models ventricles only as blood cavities, so the outer wall is reconstructed by growing each cavity by the local wall thickness measured from the coronary arteries; arteries end up a median 0.9 mm from the surface.</li>
+  <li><b>Colour mapping:</b> one fixed 0–100% ramp with monotone OKLab lightness (order survives colour-vision deficiency) and a numeric legend. The whole system shares one colour because the model predicts stenosis <i>somewhere</i> in the vessel, not a lesion location. Colours ease to new values on every prediction.</li>
+  <li><b>Interaction:</b> rotate, zoom, pan; six camera presets (anterior, left lateral, inferior, RAO, posterior, chest); hover tooltips; click or keys 1–4 to select; F for full-screen 3D; optional labels; a heartbeat at the patient's entered pulse rate, with optional synthesised heart sounds.</li>
+  <li><b>Shaders</b> (no post-processing passes): blood-flow pulses per beat, risk glow and halo proportional to probability, a sweep of light when a new prediction arrives. Cost: 1.7 ms per frame at 2400 × 1600 on integrated Intel Arc graphics, far inside the 16.7 ms budget for 60 fps; no dedicated GPU needed. A procedural heart is the fallback if the meshes are missing.</li>
+</ul>
+
+<h2><span class="n">5</span>System architecture and integration</h2>
+<svg class="arch" viewBox="0 0 760 150" xmlns="http://www.w3.org/2000/svg" font-family="Geist, Segoe UI, sans-serif" font-size="10.5">
+  <defs><marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0 0L10 5L0 10z" fill="#7d7270"/></marker></defs>
+  <g fill="#faf6f4" stroke="#c9bdb8">
+    <rect x="4" y="18" width="160" height="112" rx="8"/><rect x="214" y="18" width="200" height="112" rx="8"/><rect x="464" y="18" width="292" height="112" rx="8"/>
+  </g>
+  <g fill="#1b1716" font-weight="600"><text x="16" y="38">Offline (notebooks 1–8)</text><text x="226" y="38">FastAPI service</text><text x="476" y="38">Browser (no build step)</text></g>
+  <g fill="#514846">
+    <text x="16" y="58">Audit → split → CV</text><text x="16" y="74">Nested tuning (Optuna)</text><text x="16" y="90">One-time holdout + SHAP</text><text x="16" y="106">Platt + thresholds (dev)</text><text x="16" y="122">→ artifacts/ (joblib, json)</text>
+    <text x="226" y="58">Loads 4 pipelines, checks SHA-256</text><text x="226" y="74">/predict: validate → score →</text><text x="226" y="90">  calibrate → flag → exact SHAP</text><text x="226" y="106">/model-info /operating-curves …</text><text x="226" y="122">Serves the web app (CSP, limits)</text>
+    <text x="476" y="58">index.html: scroll-story landing (GSAP)</text><text x="476" y="74">app.html: inputs · 3D viewer · dashboard</text><text x="476" y="90">Three.js scene + vessel shaders</text><text x="476" y="106">config/features.js · config/anatomy.js</text><text x="476" y="122">heart.glb / thorax.glb (BodyParts3D)</text>
+  </g>
+  <g stroke="#7d7270" stroke-width="1.4" fill="none" marker-end="url(#a)"><path d="M166 74H212"/><path d="M416 62H462"/><path d="M462 92H416"/></g>
+  <g fill="#7d7270" font-size="9.5"><text x="420" y="56">JSON</text><text x="420" y="106">inputs</text></g>
+</svg>
+<p class="cap"><b>Figure 6.</b> Data flow. Every number in the UI comes from the API; nothing is hard-coded in the frontend.</p>
+
+<div class="two">
+<div>
+<h3>API</h3>
+<table>
+  <thead><tr><th class="l">Endpoint</th><th class="l">Returns</th></tr></thead>
+  <tbody>
+    <tr><td><code>POST /predict</code></td><td class="l">Calibrated probabilities, threshold flags, consistency check, per-feature SHAP, input warnings</td></tr>
+    <tr><td><code>GET /model-info</code></td><td class="l">Release manifest, holdout metrics, artifact hashes</td></tr>
+    <tr><td><code>GET /global-importance</code></td><td class="l">Mean |SHAP| share per feature and target</td></tr>
+    <tr><td><code>GET /probability-bands</code></td><td class="l">Observed stenosis rate per probability band</td></tr>
+    <tr><td><code>GET /operating-curves</code></td><td class="l">Development sens./spec./PPV/NPV at every threshold</td></tr>
+    <tr><td><code>GET /health</code></td><td class="l">Status; 503 until models are loaded</td></tr>
+  </tbody>
+</table>
+<p><b>Input schema</b> rejects unknown fields (so outcome labels can never be sent as inputs), impossible combinations (two chest-pain classes, current and ex-smoker, Lymph + Neut &gt; 100) and non-integer codes.</p>
+</div>
+<div>
+<h3>Real-time integration</h3>
+<p>Inputs are debounced and posted to <code>/predict</code>; one response drives the summary chips, result cards, explanation charts and the 3D colours together, so the model output and the highlighted LAD, LCX and RCA always correspond. Scoring is single-threaded per request (~60 ms with SHAP).</p>
+<h3>Extensibility</h3>
+<ul>
+  <li><b>New clinical feature:</b> add it to the training data and to <code>config/features.js</code> (label, unit, range, section); the form, validation and explanations pick it up.</li>
+  <li><b>New prediction target or model:</b> register its pipeline in <code>backend/app/config.py</code> and its calibration in the post-processing file; the registry loads, hash-checks and scores every listed target.</li>
+  <li><b>New anatomical structure:</b> add an FMA group to <code>build_anatomy.py</code>; the viewer binds any <code>vessel_&lt;TARGET&gt;</code> mesh automatically. Camera views are data in <code>config/anatomy.js</code>.</li>
+</ul>
+</div>
+</div>
+
+<h3>Engineering quality</h3>
+<ul>
+  <li><b>39 automated tests</b> (API contracts, leakage rejection, frozen-output regression, calibration monotonicity, SHAP additivity and units, security headers, rate limits); GitHub Actions runs them on every push, then builds and smoke-tests the Docker image.</li>
+  <li><b>Production hardening:</b> per-response CSP nonce, security headers, request-size limits, per-client rate limiting, request IDs, logs that never contain patient data, non-root container with a health check.</li>
+  <li><b>Offline-capable frontend:</b> Three.js, GSAP and fonts load from a CDN with integrity hashes and fall back to vendored copies when offline.</li>
+</ul>
+
+<h2><span class="n">6</span>Usage</h2>
+<div class="two keep">
+<div>
+<p>Python 3.13. From the repository root:</p>
+<pre>pip install -r requirements-notebooks.txt
+uvicorn backend.app.main:app --port 8000</pre>
+<p>Open <code>http://localhost:8000</code> (overview) or <code>/app.html</code> (explorer). Or with Docker:</p>
+<pre>docker build -t coronary-risk-explorer .
+docker run -p 8000:8000 coronary-risk-explorer</pre>
+</div>
+<div>
+<p><b>Using the explorer:</b> load one of five example patients or enter values; watch the estimates, artery colours and explanations update. Click an artery (or press 1–4) to focus it; drag to rotate, scroll to zoom, V cycles views, F full-screen, ? lists shortcuts. Use the Threshold tab to choose how cautious the flags are.</p>
+<p><b>Reproduce the models:</b> run Notebooks 1–8 in order; Notebook 6 verifies it reproduces the original one-time holdout predictions. Tests: <code>python -m pytest backend/tests -q</code>. Rebuild the meshes: <code>python tools/build_anatomy.py</code>.</p>
+</div>
+</div>
+
+<h2><span class="n">7</span>Limitations</h2>
+<ul>
+  <li><b>Small, single-centre cohort:</b> 303 patients referred for angiography (CAD prevalence 71%); estimates apply to similar referral populations, not to screening. External validation is needed.</li>
+  <li><b>Wide holdout intervals:</b> 61 patients; one patient moves sensitivity or specificity by 2–6 points. The v1.1 threshold metrics are development estimates; testing them without bias needs new data.</li>
+  <li><b>Weaker vessels:</b> LCX and RCA discrimination is moderate (ROC-AUC 0.70–0.73); left main disease is not modelled separately.</li>
+  <li><b>Spectrum effects:</b> Q waves, wall-motion abnormality and reduced EF can reflect prior infarction, i.e. established disease.</li>
+  <li><b>Reference anatomy:</b> the heart is one reference (right-dominant) anatomy, not the patient's; colour marks risk for the whole vessel, not a lesion location.</li>
+</ul>
+<p class="muted" style="font-size:7.9pt;margin-top:6pt">Data: Z-Alizadeh Sani et al., UCI Machine Learning Repository, Extension of Z-Alizadeh Sani Dataset. Anatomy: BodyParts3D, © The Database Center for Life Science, CC BY 4.0 (meshes cropped, simplified, regrouped and recoloured; ventricular surface reconstructed). Libraries: scikit-learn, XGBoost, SHAP, Optuna, FastAPI, Three.js, GSAP.</p>
+
+</body>
+</html>

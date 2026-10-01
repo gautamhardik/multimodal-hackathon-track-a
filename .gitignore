@@ -51,3 +51,7 @@ build_nb6.py
 
 # Vendored front-end libraries must be committed (three.js lives under a build/ folder)
 !frontend/vendor/**/build/
+
+# Demo video production (multi-GB raw captures and renders; final videos are shared via YouTube)
+demo-video/
+brag-output/

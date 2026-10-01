@@ -6,7 +6,7 @@ vessel-specific probabilities with exact SHAP explanations, visualised on an int
 
 > **Decision support / education only.** Not a medical device, and not a substitute for clinical assessment or diagnostic imaging.
 
-**Status:** the ML pipeline (Notebooks 1–8), inference API, landing page, anatomical 3D viewer and clinical dashboard are complete. The written report and demo video are not part of this repository.
+**Status:** the ML pipeline (Notebooks 1–8), inference API, landing page, anatomical 3D viewer and clinical dashboard are complete. The 6-page project documentation is [`docs/Project_Documentation.pdf`](docs/Project_Documentation.pdf) (source: `docs/project_documentation.html`, rebuilt with `python docs/build_pdf.py [video_url]`). The demo video is published separately.
 
 ## Repository layout
 

@@ -84,15 +84,20 @@ const POSES = {
 // Hero: centre the heart in the free space between the intro paragraph and the example card, measured from the
 // layout (the copy column is centred and capped in width while the canvas spans the whole window).
 // The heart's on-screen width is about 0.35 x viewport height x pose.scale, so it is scaled down to fit narrow gaps.
+const HERO_MAX_SCALE = 1.0;   // the heart grows into the gap between the copy and the card, up to this size
+
 function heroPose() {
   const base = POSES.top.pose;
   const lede = $('.hero .lede')?.getBoundingClientRect();
   const card = $('#readout')?.getBoundingClientRect();
-  if (!lede || !card || !card.width || card.left <= lede.right) return { x: base.x, scale: base.scale };
-  const gap = card.left - lede.right;
+  if (!lede || !card || !card.width) return { x: base.x, scale: base.scale };
+  // the copy's right edge: the paragraph, or the headline's text where it runs further (wide screens)
+  const copyRight = Math.max(lede.right, ...[...document.querySelectorAll('.hero .display .line > *')].map(el => el.getBoundingClientRect().right));
+  if (card.left <= copyRight) return { x: base.x, scale: base.scale };
+  const gap = card.left - copyRight;
   return {
-    x: ((lede.right + card.left) / 2 / window.innerWidth) * 2 - 1,
-    scale: Math.max(0.55, Math.min(base.scale, (gap * 0.9) / (0.35 * window.innerHeight))),
+    x: ((copyRight + card.left) / 2 / window.innerWidth) * 2 - 1,
+    scale: Math.max(0.55, Math.min(HERO_MAX_SCALE, (gap * 0.9) / (0.35 * window.innerHeight))),
   };
 }
 
